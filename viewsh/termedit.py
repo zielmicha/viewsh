@@ -24,12 +24,13 @@ class TermLineEdit(object):
             if isinstance(event, KeyEvent):
                 self.handle_key(event)
             if self.finish:
+                self.move_to(len(self.buff))
+                self.terminal.write('\n')
                 return self.buff
 
     def handle_key(self, event):
         if event.char == '\n':
             self.finish = True
-            self.terminal.write('\n')
         elif event.char == '\x7f': # backspace
             self.backspace()
         elif event.type == 'left':
@@ -90,34 +91,47 @@ class TermLineEdit(object):
 class TerminalWriter(object):
     def __init__(self, terminal):
         self.terminal = terminal
+        self.size = None
+        self.cursor_position = None
+
+    def get_size(self):
+        if not self.size:
+            self.size = self.terminal.get_size()
+        return self.size
+
+    def get_cursor_position(self):
+        if not self.cursor_position:
+            self.cursor_position = list(self.terminal.get_cursor_position())
+        return self.cursor_position
 
     def backspace(self):
         self.move_back()
-        pos = self.terminal.get_cursor_position()
+        pos = self.get_cursor_position()
         self.terminal.write(' ')
         self.set_cursor_pos(pos)
 
-    def remove_all(self):
-        pass
-
     def move_back(self):
-        x, y = self.terminal.get_cursor_position()
-        w, h = self.terminal.get_size()
+        x, y = self.get_cursor_position()
+        w, h = self.get_size()
         if x == 1:
             self.terminal.write('\x1b[A') # one line up
             self.terminal.write('\x1b[%dG' % (w - 1)) # to the end of line
+            self.invalidate()
         else:
             self.terminal.write('\b')
+            self.cursor_position[0] -= 1
 
     def move_forward(self):
-        x, y = self.terminal.get_cursor_position()
-        w, h = self.terminal.get_size()
+        x, y = self.get_cursor_position()
+        w, h = self.get_size()
         _debug(x, y, w, h)
         if x == w - 1:
             self.terminal.write('\x1b[B') # one line up
             self.terminal.write('\x1b[1G') # to the start of line
+            self.invalidate()
         else:
             self.terminal.write('\x1b[C')
+            self.cursor_position[0] += 1
 
     def clear_forward(self, n):
         ' Clear next n characters '
@@ -130,7 +144,7 @@ class TerminalWriter(object):
         ' Add data at current position, assuming it is end. '
         w, h = self.terminal.get_size()
         while data:
-            x, y = self.terminal.get_cursor_position()
+            x, y = self.get_cursor_position()
             space_left = w - x
             self.terminal.write(data[:space_left])
             data = data[space_left:]
@@ -141,14 +155,14 @@ class TerminalWriter(object):
                     self.set_cursor_pos((1, h))
                 else:
                     self.set_cursor_pos((1, y + 1))
+        self.invalidate()
 
-        #if data[space_left:]:
-        #    self.set_cursor_pos((w, h))
-        #    #self.terminal.write(' ')
-        #    self.terminal.write(data[space_left:])
+    def invalidate(self):
+        self.cursor_position = None
 
     def set_cursor_pos(self, (x, y)):
         self.terminal.write('\x1b[%d;%dH' % (y, x))
+        self.cursor_position = [x, y]
 
 def _debug(*args):
     if 1:
