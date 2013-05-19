@@ -45,7 +45,7 @@ class TermLineEdit(object):
             self.move_to(len(self.buff))
         elif event.type == 'kill':
             self.kill()
-        elif ord(event.char) > 0x0f:
+        elif ord(event.char) >= 0x20:
             self.add(event.char)
         self.__normalize()
 

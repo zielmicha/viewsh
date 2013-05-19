@@ -64,7 +64,7 @@ class Terminal(task.Task):
         ''' Called with current buffer. If it doesn't constitute
         single keystroke raises _NotReady. '''
         if data[0] == '\x0b':
-            self._post(KeyEvent('kill'))
+            self._post(KeyEvent('kill', char='\x0b'))
         elif data[0] == '\x1b':
             if data[-1] in '1234567890[;\x1b':
                 raise _NotReady
@@ -85,7 +85,7 @@ class Terminal(task.Task):
                 'F': const.end,
                 'H': const.home,}.get(code)
         if kind:
-            self._post(KeyEvent(kind))
+            self._post(KeyEvent(kind, char='\x1b[' + data + code))
         if code == 'R':
             self.get_cursor_position_event.post(data)
 
@@ -114,7 +114,7 @@ class NormalWriter(object):
 
 class KeyEvent(object):
     def __init__(self, type='char', char=None):
-        assert bool(char) == (type == 'char')
+        assert char
         self.char = char
         self.type = type
 

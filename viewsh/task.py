@@ -1,6 +1,7 @@
 from Queue import Queue as _Queue
 import threading
 import traceback
+import sys
 import os
 
 class Queue(object):
@@ -37,4 +38,5 @@ class Task(object):
         except:
             # normally, there is no sense to continue
             traceback.print_exc()
+            sys.exitfunc()
             os._exit(1)

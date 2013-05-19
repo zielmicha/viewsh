@@ -54,8 +54,11 @@ class FileStreamReader(task.Task):
         while True:
             try:
                 data = self.input.read(self.buffer_size)
+                if not data:
+                    raise IOError('EOF')
             except IOError:
                 self.read_event.post(StreamCloseEvent())
+                return
             else:
                 tag = None # TODO
                 self.read_event.post(StreamReadEvent(tag, data))
@@ -67,4 +70,4 @@ class FileStreamWriter(task.Task):
 
     def run(self):
         for item in self.q:
-            self.output.write(output)
+            self.output.write(item)
