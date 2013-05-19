@@ -5,6 +5,9 @@ import tty, termios
 import atexit
 import os
 import traceback
+import fcntl
+import termios
+import struct
 
 class Terminal(task.Task):
     '''
@@ -13,6 +16,7 @@ class Terminal(task.Task):
     def __init__(self):
         task.Task.__init__(self)
         self.key_event = task.NullQueue()
+        self.get_cursor_position_event = task.Queue()
         self._buff = ''
         self.stdout = os.fdopen(1, 'w', 0)
 
@@ -22,6 +26,11 @@ class Terminal(task.Task):
             self._run()
         finally:
             self._finish()
+
+    def get_cursor_position(self):
+        self.write('\x1b[6n')
+        data = self.get_cursor_position_event.get()
+        return map(int, data.split(';'))[::-1]
 
     def _init(self):
         self._termattrs = termios.tcgetattr(0)
@@ -59,7 +68,7 @@ class Terminal(task.Task):
                 raise _NotReady
             else:
                 code = data[-1]
-                self._handle_code(code, data[:-1])
+                self._handle_code(code, data[2:-1])
         else:
             self._post(KeyEvent(char=data[0]))
 
@@ -73,6 +82,8 @@ class Terminal(task.Task):
                 'D': const.left}.get(code)
         if kind:
             self._post(KeyEvent(kind))
+        if code == 'R':
+            self.get_cursor_position_event.post(data)
 
     def write(self, data):
         with self.lock:
@@ -80,6 +91,12 @@ class Terminal(task.Task):
 
     def write_normal(self, data):
         self.write(data.replace('\n', '\r\n'))
+
+    def get_size(self):
+        return struct.unpack('hh', fcntl.ioctl(0, termios.TIOCGWINSZ, '1234'))[::-1]
+
+    def get_width(self):
+        return self.get_size()[0]
 
 class NormalWriter(object):
     def __init__(self, terminal):

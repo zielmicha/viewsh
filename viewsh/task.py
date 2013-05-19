@@ -8,9 +8,12 @@ class Queue(object):
     def post(self, item):
         self._q.put(item)
 
+    def get(self):
+        return self._q.get()
+
     def __iter__(self):
         while True:
-            yield self._q.get()
+            yield self.get()
 
 class NullQueue(object):
     def post(self, item):
