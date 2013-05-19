@@ -12,13 +12,15 @@ class Shell(object):
         self.terminal = terminal
         self.transport = transport
         self.prompt = self.Prompt(terminal, transport)
-        self.line_edit = self.LineEdit(terminal, transport)
         #self.executor = self.Executor(terminal, transport)
 
     def single(self):
         self.prompt.show()
-        line = self.line_edit.prompt()
-        self.executor.execute(line)
+        line_edit = self.LineEdit(self.terminal, self.transport)
+        line = line_edit.prompt()
+        print 'executing', line
+        if line == 'exit': raise SystemExit
+        #self.executor.execute(line)
 
     def loop(self):
         while True:
@@ -27,7 +29,7 @@ class Shell(object):
 def main():
     from viewsh.transport import local
     from viewsh import terminal
-    terminal = terminal.TermControl()
+    terminal = terminal.Terminal()
     terminal.start()
     transport = local.LocalTransport()
     shell = Shell(terminal, transport)

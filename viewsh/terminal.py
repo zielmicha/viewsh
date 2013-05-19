@@ -1,15 +1,40 @@
 from viewsh import task
 import sys
 import codecs
+import tty, termios
+import atexit
+import os
+import traceback
 
 class Terminal(task.Task):
+    '''
+    Handles reading from and writing to terminal.
+    '''
     def __init__(self):
-        Task.__init__(self)
+        task.Task.__init__(self)
         self.key_event = task.NullQueue()
+        self._buff = ''
+        self.stdout = os.fdopen(1, 'w', 0)
 
     def run(self):
-        input = sys.stdin
-        decoder = codecs.getincrementaldecoder('utf-8')
+        self._init()
+        try:
+            self._run()
+        finally:
+            self._finish()
+
+    def _init(self):
+        self._termattrs = termios.tcgetattr(0)
+        tty.setcbreak(0)
+        atexit.register(self._finish, 0)
+        sys.stdout = sys.stderr = NormalWriter(self)
+
+    def _finish(self, *args):
+        termios.tcsetattr(0, termios.TCSANOW, self._termattrs)
+
+    def _run(self):
+        input = os.fdopen(0, 'r', 0)
+        decoder = codecs.getincrementaldecoder('utf-8')()
         while True:
             raw = input.read(1)
             chars = decoder.decode(raw)
@@ -17,11 +42,71 @@ class Terminal(task.Task):
                 self._feed(ch)
 
     def _feed(self, ch):
-        pass
+        ' Called when new character arrives '
+        self._buff += ch
+        try:
+            self._consume(self._buff)
+        except _NotReady:
+            pass
+        else:
+            self._buff = ''
+
+    def _consume(self, data):
+        ''' Called with current buffer. If it doesn't constitute
+        single keystoke raises _NotReady. '''
+        if data[0] == '\x1b':
+            if data[-1] in '1234567890[;\x1b':
+                raise _NotReady
+            else:
+                code = data[-1]
+                self._handle_code(code, data[:-1])
+        else:
+            self._post(KeyEvent(char=data[0]))
+
+    def _post(self, ev):
+        self.key_event.post(ev)
+
+    def _handle_code(self, code, data):
+        kind = {'A': const.up,
+                'B': const.down,
+                'C': const.right,
+                'D': const.left}.get(code)
+        if kind:
+            self._post(KeyEvent(kind))
 
     def write(self, data):
         with self.lock:
-            sys.stdout.write(data)
+            self.stdout.write(data)
+
+    def write_normal(self, data):
+        self.write(data.replace('\n', '\r\n'))
+
+class NormalWriter(object):
+    def __init__(self, terminal):
+        self.terminal = terminal
+
+    def write(self, data):
+        self.terminal.write_normal(data)
+
+    def flush(self):
+        pass
 
 class KeyEvent(object):
+    def __init__(self, type='char', char=None):
+        assert bool(char) == (type == 'char')
+        self.char = char
+        self.type = type
+
+    def __repr__(self):
+        return '<KeyEvent %s char=%r>' % (self.type, self.char)
+
+class KeyConst:
+    pass
+
+const = KeyConst
+
+for i in ['up', 'down', 'right', 'left', 'char']:
+    setattr(const, i, i)
+
+class _NotReady(Exception):
     pass
