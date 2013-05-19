@@ -62,8 +62,10 @@ class Terminal(task.Task):
 
     def _consume(self, data):
         ''' Called with current buffer. If it doesn't constitute
-        single keystoke raises _NotReady. '''
-        if data[0] == '\x1b':
+        single keystroke raises _NotReady. '''
+        if data[0] == '\x0b':
+            self._post(KeyEvent('kill'))
+        elif data[0] == '\x1b':
             if data[-1] in '1234567890[;\x1b':
                 raise _NotReady
             else:
@@ -79,7 +81,9 @@ class Terminal(task.Task):
         kind = {'A': const.up,
                 'B': const.down,
                 'C': const.right,
-                'D': const.left}.get(code)
+                'D': const.left,
+                'F': const.end,
+                'H': const.home,}.get(code)
         if kind:
             self._post(KeyEvent(kind))
         if code == 'R':
@@ -122,7 +126,7 @@ class KeyConst:
 
 const = KeyConst
 
-for i in ['up', 'down', 'right', 'left', 'char']:
+for i in ['up', 'down', 'right', 'left', 'char', 'home', 'end', 'kill']:
     setattr(const, i, i)
 
 class _NotReady(Exception):
