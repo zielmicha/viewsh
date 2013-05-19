@@ -5,12 +5,11 @@ from viewsh import task
 from viewsh.terminal import KeyEvent
 
 class TermLineEdit(object):
-    def __init__(self, terminal, transport):
+    def __init__(self, terminal):
         self.terminal = terminal
-        self.transport = transport
         self.buff = ''
         self.pos = 0
-        self.finish = False
+        self.__finished = False
         self.__termwrite = TerminalWriter(terminal)
         self.__init()
 
@@ -23,14 +22,17 @@ class TermLineEdit(object):
         for event in q:
             if isinstance(event, KeyEvent):
                 self.handle_key(event)
-            if self.finish:
+            if self.__finished:
                 self.move_to(len(self.buff))
                 self.terminal.write('\n')
-                return self.buff
+                return self.finished()
+
+    def finished(self):
+        return self.buff
 
     def handle_key(self, event):
         if event.char == '\n':
-            self.finish = True
+            self.__finished = True
         elif event.char == '\x7f': # backspace
             self.backspace()
         elif event.type == 'left':
@@ -43,7 +45,7 @@ class TermLineEdit(object):
             self.move_to(len(self.buff))
         elif event.type == 'kill':
             self.kill()
-        elif event.char:
+        elif ord(event.char) > 0x0f:
             self.add(event.char)
         self.__normalize()
 
@@ -74,6 +76,10 @@ class TermLineEdit(object):
     def kill(self):
         self.__termwrite.clear_forward(len(self.buff) - self.pos)
         self.buff = self.buff[:self.pos]
+
+    def clear(self):
+        self.move_to(0)
+        self.kill()
 
     def __normalize(self):
         self.pos = max(self.pos, 0)
