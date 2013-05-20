@@ -36,7 +36,7 @@ class Task(object):
         try:
             self.run()
         except:
-            # normally, there is no sense to continue
+            # normally, there is no point to continue
             traceback.print_exc()
             sys.exitfunc()
             os._exit(1)
