@@ -17,6 +17,7 @@ class LocalTransport(transport.Transport):
             # child
             winsize = struct.pack("HHHH", size[1], size[0], 0, 0)
             fcntl.ioctl(0, termios.TIOCSWINSZ, winsize)
+            os.system('stty iutf8')
             os.execvp(args[0], args)
         else:
             return stream.FileStream(os.fdopen(fd, 'r', 0), os.fdopen(fd, 'w', 0))
