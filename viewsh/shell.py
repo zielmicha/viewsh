@@ -31,6 +31,7 @@ class ShellState(object):
         self.history = []
         self.interface = comm.Interface()
         self.interface.log('ShellState init')
+        self.interface.patch_log()
 
 def main():
     from viewsh.transport import local

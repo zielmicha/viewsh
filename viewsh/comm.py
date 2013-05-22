@@ -21,6 +21,11 @@ class Interface(object):
     def is_connected(self):
         return bool(self._path)
 
+    def patch_log(self):
+        # set local viewsh.log to remote function
+        import viewsh.tools
+        viewsh.tools._log_real = self.log
+
     def __getattr__(self, name):
         def call(*args, **kwargs):
             if self._path:

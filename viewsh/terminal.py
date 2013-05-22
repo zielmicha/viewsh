@@ -1,4 +1,5 @@
 from viewsh import task
+from viewsh.tools import log
 import sys
 import codecs
 import tty, termios
@@ -65,19 +66,19 @@ class Terminal(task.Task):
         single keystroke raises _NotReady. '''
         if data[0] == '\x0b':
             self._post(KeyEvent('kill', char='\x0b'))
-        elif data[0] == '\x1b':
-            if data[-1] in '1234567890[;\x1b':
+        elif data[0] == '\x1b' and data[1:2] in '[O':
+            if len(data) <= 2 or data[-1] in '1234567890[;\x1b':
                 raise _NotReady
             else:
                 code = data[-1]
-                self._handle_code(code, data[2:-1])
+                self._handle_code(code, data[2:-1], data[1])
         else:
             self._post(KeyEvent(char=data[0]))
 
     def _post(self, ev):
         self.key_event.post(ev)
 
-    def _handle_code(self, code, data):
+    def _handle_code(self, code, data, mode_ind):
         kind = {'A': const.up,
                 'B': const.down,
                 'C': const.right,
@@ -85,7 +86,7 @@ class Terminal(task.Task):
                 'F': const.end,
                 'H': const.home,}.get(code)
         if kind:
-            self._post(KeyEvent(kind, char='\x1b[' + data + code))
+            self._post(KeyEvent(kind, char='\x1b' + mode_ind + data + code))
         if code == 'R':
             self.get_cursor_position_event.post(data)
 
