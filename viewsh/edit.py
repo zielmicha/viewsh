@@ -1,9 +1,8 @@
 from viewsh import termedit
 
 class LineEdit(termedit.TermLineEdit):
-    def __init__(self, state, terminal, transport):
+    def __init__(self, state, terminal):
         super(LineEdit, self).__init__(terminal)
-        self.transport = transport
         self.state = state
         self.history_pos = len(self.state.history)
 

@@ -42,6 +42,9 @@ class FileStream(Stream):
     def set_read_event(self, q):
         self.reader.read_event = q
 
+    def __del__(self):
+        self.writer.q.stop()
+
     read_event = property(fset=set_read_event)
 
 class FileStreamReader(task.Task):

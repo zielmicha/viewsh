@@ -6,6 +6,9 @@ import os
 import fcntl
 import termios
 import struct
+import signal
+
+signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
 class LocalTransport(transport.Transport):
     def __init__(self):
@@ -20,4 +23,5 @@ class LocalTransport(transport.Transport):
             os.system('stty iutf8')
             os.execvp(args[0], args)
         else:
-            return stream.FileStream(os.fdopen(fd, 'r', 0), os.fdopen(fd, 'w', 0))
+            f = os.fdopen(fd, 'r+', 0)
+            return stream.FileStream(f, f)

@@ -1,8 +1,7 @@
 
 class Prompt(object):
-    def __init__(self, state, terminal, transport):
+    def __init__(self, state, terminal):
         self.terminal = terminal
-        self.transport = transport
         self.state = state
 
     def show(self):

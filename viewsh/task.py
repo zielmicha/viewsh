@@ -7,12 +7,24 @@ import os
 class Queue(object):
     def __init__(self):
         self._q = _Queue(0)
+        self._senitel = object()
+        self._stopped = False
 
     def post(self, item):
         self._q.put(item)
 
     def get(self):
-        return self._q.get()
+        if self._stopped:
+            raise StopIteration()
+        value = self._q.get()
+        if value is self._senitel:
+            raise StopIteration()
+        return value
+
+    def stop(self):
+        # works only if there is one thread waiting!
+        self._stopped = True
+        self._q.put(self._senitel)
 
     def __iter__(self):
         while True:

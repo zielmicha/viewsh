@@ -5,16 +5,15 @@ from viewsh import terminal
 import shlex
 
 class Executor(object):
-    def __init__(self, state, terminal, transport):
+    def __init__(self, state, terminal):
         self.state = state
         self.terminal = terminal
-        self.transport = transport
 
     def execute(self, command):
         if command == 'exit':
             raise SystemExit
         args = shlex.split(command)
-        execution = self.transport.execute(args, size=self.terminal.get_size(),
+        execution = self.state.transport.execute(args, size=self.terminal.get_size(),
                                            pty=True)
         q = task.Queue()
         execution.read_event = q
