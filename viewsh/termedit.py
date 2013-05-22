@@ -24,14 +24,14 @@ class TermLineEdit(object):
                 self.handle_key(event)
             if self.__finished:
                 self.move_to(len(self.buff))
-                self.terminal.write('\n')
+                self.terminal.write('\r\n')
                 return self.finished()
 
     def finished(self):
         return self.buff
 
     def handle_key(self, event):
-        if event.char == '\n':
+        if event.char in '\r\n':
             self.__finished = True
         elif event.char == '\x7f': # backspace
             self.backspace()

@@ -35,7 +35,7 @@ class Terminal(task.Task):
 
     def _init(self):
         self._termattrs = termios.tcgetattr(0)
-        tty.setcbreak(0)
+        tty.setraw(0)
         atexit.register(self._finish, 0)
         sys.stdout = sys.stderr = NormalWriter(self)
 
@@ -104,6 +104,7 @@ class Terminal(task.Task):
         return self.get_size()[0]
 
 class NormalWriter(object):
+    ''' Write to raw terminal as if it isn't raw. '''
     def __init__(self, terminal):
         self.terminal = terminal
 
