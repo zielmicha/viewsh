@@ -1,9 +1,9 @@
+from viewsh.tools import log
 from viewsh import prompt
 from viewsh import edit
 from viewsh import task
 from viewsh import executor
-from viewsh import comm
-from viewsh.transport import local
+from viewsh import state
 
 class Shell(object):
     Prompt = prompt.Prompt
@@ -26,20 +26,12 @@ class Shell(object):
         while True:
             self.single()
 
-class ShellState(object):
-    def __init__(self):
-        self.history = []
-        self.interface = comm.Interface()
-        self.interface.log('ShellState init')
-        self.interface.patch_log()
-        self.transport = local.LocalTransport()
-
 def main():
     from viewsh import terminal
     terminal = terminal.Terminal()
     terminal.start()
-    state = ShellState()
-    shell = Shell(terminal, state)
+    shell_state = state.ShellState()
+    shell = Shell(terminal, shell_state)
     shell.loop()
 
 if __name__ == '__main__':

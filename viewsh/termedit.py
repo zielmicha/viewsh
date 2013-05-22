@@ -2,6 +2,7 @@
 Low level class implementing line edit in raw mode.
 '''
 from viewsh import task
+from viewsh.tools import log
 from viewsh.terminal import KeyEvent
 
 class TermLineEdit(object):
@@ -11,14 +12,14 @@ class TermLineEdit(object):
         self.pos = 0
         self.__finished = False
         self.__termwrite = TerminalWriter(terminal)
-        self.__init()
 
     def __init(self):
         self.screen_offset = self.terminal.get_cursor_position()[0] - 1
 
     def prompt(self):
-        q = task.Queue()
+        q = task.Queue('termedit')
         self.terminal.key_event = q
+        self.__init()
         for event in q:
             if isinstance(event, KeyEvent):
                 self.handle_key(event)
@@ -154,7 +155,6 @@ class TerminalWriter(object):
             space_left = w - x
             self.terminal.write(data[:space_left])
             data = data[space_left:]
-            _debug(space_left, data)
             if data:
                 if y == h: # no more horizontal space
                     self.terminal.write('\x1b[1S')
@@ -169,7 +169,3 @@ class TerminalWriter(object):
     def set_cursor_pos(self, (x, y)):
         self.terminal.write('\x1b[%d;%dH' % (y, x))
         self.cursor_position = [x, y]
-
-def _debug(*args):
-    if 1:
-        print >>open('log', 'a'), args

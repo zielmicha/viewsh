@@ -29,6 +29,7 @@ class Terminal(task.Task):
             self._finish()
 
     def get_cursor_position(self):
+        self.get_cursor_position_event = task.Queue()
         self.write('\x1b[6n')
         data = self.get_cursor_position_event.get()
         return map(int, data.split(';'))[::-1]

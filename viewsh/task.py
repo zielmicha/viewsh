@@ -5,18 +5,19 @@ import sys
 import os
 
 class Queue(object):
-    def __init__(self):
+    def __init__(self, name='queue'):
         self._q = _Queue(0)
         self._senitel = object()
         self._stopped = False
+        self._name = name
 
     def post(self, item):
         self._q.put(item)
 
-    def get(self):
+    def get(self, timeout=None):
         if self._stopped:
             raise StopIteration()
-        value = self._q.get()
+        value = self._q.get(timeout=timeout)
         if value is self._senitel:
             raise StopIteration()
         return value
@@ -29,6 +30,9 @@ class Queue(object):
     def __iter__(self):
         while True:
             yield self.get()
+
+    def __repr__(self):
+        return '<Queue: %s at 0x%X>' % (self._name, id(self))
 
 class NullQueue(object):
     def post(self, item):

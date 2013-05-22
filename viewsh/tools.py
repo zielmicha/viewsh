@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 def log(*args):
-    _log_real(*args)
+    _log_real(*map(str, args))
 
 def _log_real(*args):
     # don't clobber terminal output

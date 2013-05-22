@@ -1,4 +1,5 @@
 from viewsh import termedit
+from viewsh.tools import log
 
 class LineEdit(termedit.TermLineEdit):
     def __init__(self, state, terminal):

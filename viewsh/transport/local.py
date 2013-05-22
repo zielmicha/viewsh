@@ -7,6 +7,8 @@ import fcntl
 import termios
 import struct
 import signal
+import traceback
+import sys
 
 signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
@@ -14,14 +16,27 @@ class LocalTransport(transport.Transport):
     def __init__(self):
         super(LocalTransport, self).__init__()
 
-    def execute(self, args, size=None, pty=False):
+    def execute(self, args, size=None, pty=False, cwd='/'):
         pid, fd = _pty.fork()
         if pid == 0:
             # child
-            winsize = struct.pack("HHHH", size[1], size[0], 0, 0)
-            fcntl.ioctl(0, termios.TIOCSWINSZ, winsize)
-            os.system('stty iutf8')
-            os.execvp(args[0], args)
+            try:
+                winsize = struct.pack("HHHH", size[1], size[0], 0, 0)
+                fcntl.ioctl(0, termios.TIOCSWINSZ, winsize)
+                os.chdir(cwd)
+                os.system('stty iutf8')
+                os.execvp(args[0], args)
+            except (IOError, OSError) as err:
+                sys.stderr.write('viewsh: %s: %s\n' % (args[0], err))
+            except:
+                traceback.print_exc()
+
+            os._exit(0)
         else:
             f = os.fdopen(fd, 'r+', 0)
             return stream.FileStream(f, f)
+
+    def real_path(self, path):
+        new_path = os.path.realpath(path)
+        os.stat(new_path)
+        return new_path
