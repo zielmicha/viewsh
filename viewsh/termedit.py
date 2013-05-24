@@ -131,7 +131,6 @@ class TerminalWriter(object):
     def move_forward(self):
         x, y = self.get_cursor_position()
         w, h = self.get_size()
-        _debug(x, y, w, h)
         if x == w - 1:
             self.terminal.write('\x1b[B') # one line up
             self.terminal.write('\x1b[1G') # to the start of line

@@ -1,3 +1,4 @@
+from viewsh.tools import log
 from viewsh import task
 from viewsh import stream
 from viewsh import terminal
@@ -24,7 +25,8 @@ class Executor(object):
     def execute_remote_command(self, args):
         execution = self.state.transport.execute(args, size=self.terminal.get_size(),
                                                  pty=True,
-                                                 cwd=self.state.current_directory)
+                                                 cwd=self.state.current_directory,
+                                                 environ={'TERM': 'xterm'})
         q = task.Queue('execute_remote_command')
         execution.read_event = q
         execution.start()
@@ -40,8 +42,8 @@ class Executor(object):
     def call_command(self, func, *args):
         try:
             func(*args)
-        #except (IOError, OSError) as err:
-        #    sys.stderr.write('viewsh: %s\n' % err)
+        except (IOError, OSError) as err:
+            sys.stderr.write('viewsh: %s\n' % err)
         except:
             traceback.print_exc()
 

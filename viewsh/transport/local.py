@@ -16,13 +16,14 @@ class LocalTransport(transport.Transport):
     def __init__(self):
         super(LocalTransport, self).__init__()
 
-    def execute(self, args, size=None, pty=False, cwd='/'):
+    def execute(self, args, size=None, pty=False, cwd='/', environ={}):
         pid, fd = _pty.fork()
         if pid == 0:
             # child
             try:
                 winsize = struct.pack("HHHH", size[1], size[0], 0, 0)
                 fcntl.ioctl(0, termios.TIOCSWINSZ, winsize)
+                os.environ.update(environ)
                 os.chdir(cwd)
                 os.system('stty iutf8')
                 os.execvp(args[0], args)
@@ -33,8 +34,8 @@ class LocalTransport(transport.Transport):
 
             os._exit(0)
         else:
-            f = os.fdopen(fd, 'r+', 0)
-            return stream.FileStream(f, f)
+            fd2 = os.dup(fd)
+            return stream.FileStream(os.fdopen(fd, 'r', 0), os.fdopen(fd2, 'w', 0))
 
     def real_path(self, path):
         new_path = os.path.realpath(path)
