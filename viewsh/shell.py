@@ -14,13 +14,15 @@ class Shell(object):
         self.terminal = terminal
         self.state = state
         self.prompt = self.Prompt(self.state, terminal)
-        self.executor = self.Executor(self.state, terminal)
+
+        # this is circular dependency - this is bad
+        self.state.executor = self.Executor(self.state, terminal)
 
     def single(self):
         self.prompt.show()
         line_edit = self.LineEdit(self.state, self.terminal)
         line = line_edit.prompt()
-        self.executor.execute(line)
+        self.state.executor.execute(line)
 
     def loop(self):
         while True:
@@ -28,9 +30,11 @@ class Shell(object):
 
 def main():
     from viewsh import terminal
+    from viewsh import rc
     terminal = terminal.Terminal()
     terminal.start()
     shell_state = state.ShellState()
+    rc.setup(shell_state)
     shell = Shell(terminal, shell_state)
     shell.loop()
 

@@ -1,9 +1,13 @@
 from viewsh import comm
 from viewsh.transport import local
 
-import posixpath
-
 class ShellState(object):
+    '''
+    Class that keeps track of state of anything.
+    It's job is to switch between settings set on events
+    like connection to remote server.
+    '''
+
     def __init__(self):
         self.history = []
         self.interface = comm.Interface()
@@ -11,7 +15,3 @@ class ShellState(object):
         self.interface.patch_log()
         self.transport = local.LocalTransport()
         self.current_directory = '/'
-
-    def chdir(self, path):
-        new_dir = posixpath.join(self.current_directory, path)
-        self.current_directory = self.transport.real_path(new_dir)

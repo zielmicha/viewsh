@@ -6,6 +6,7 @@ from viewsh import terminal
 import shlex
 import traceback
 import sys
+import posixpath
 
 class Executor(object):
     def __init__(self, state, terminal):
@@ -47,8 +48,13 @@ class Executor(object):
         except:
             traceback.print_exc()
 
+    # chdir is in executor, because it may need to trigger user hooks
+    def chdir(self, path):
+        new_dir = posixpath.join(self.state.current_directory, path)
+        self.state.current_directory = self.state.transport.real_path(new_dir)
+
     def command_exit(self):
         raise SystemExit
 
     def command_cd(self, dir):
-        self.state.chdir(dir)
+        self.chdir(dir)

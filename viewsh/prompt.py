@@ -1,3 +1,5 @@
+from viewsh import rc
+from viewsh.tools import log
 
 PS1 = '{path} $ '
 
@@ -7,4 +9,6 @@ class Prompt(object):
         self.state = state
 
     def show(self):
-        self.terminal.write(PS1.format(path=self.state.current_directory))
+        ps1 = getattr(self.state, 'ps1', PS1)
+        prompt_text = rc.format_with_default_params(ps1, path=self.state.current_directory)
+        self.terminal.write(prompt_text)

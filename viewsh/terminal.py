@@ -133,5 +133,25 @@ const = KeyConst
 for i in ['up', 'down', 'right', 'left', 'char', 'home', 'end', 'kill']:
     setattr(const, i, i)
 
+class Color:
+    seq = '\x1B[%sm'
+    reset = seq % 0
+    bold = seq % 1
+
+def _setup():
+    colors = ['grey',
+               'red',
+               'green',
+               'yellow',
+               'blue',
+               'magenta',
+               'cyan',
+               'white']
+    for i, name in enumerate(colors):
+        setattr(Color, name, Color.seq % (i + 30))
+        setattr(Color, 'on_%s' % name, Color.seq % (i + 40))
+
+_setup()
+
 class _NotReady(Exception):
     pass
