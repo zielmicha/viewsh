@@ -1,4 +1,5 @@
 from viewsh import terminal
+from viewsh.prompt import PS1
 
 import os
 
@@ -16,13 +17,5 @@ def get_rc_paths():
         os.path.expanduser('~/.config/viewsh/rc.py'),
         '/etc/viewsh.rc.py']
 
-def default_format_params(src=None):
-    params = dict(src)
-    params.update(terminal.Color.__dict__)
-    return params
-
-def format_with_default_params(txt, **kwargs):
-    return txt.format(**default_format_params(kwargs))
-
 def default_rc(state):
-    state.ps1 = '{cyan}{path}{reset} {red}{bold}${reset} '
+    state[PS1] = '{cyan}{path}{reset} {red}{bold}${reset} '

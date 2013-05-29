@@ -5,6 +5,7 @@ import pickle
 class Interface(object):
     def __init__(self):
         self._path = os.environ.get('VIEWSH_SOCKET')
+        self.patch_log()
 
     def _connect(self):
         sock = socket.socket(socket.AF_UNIX)

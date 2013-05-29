@@ -2,6 +2,8 @@ from viewsh.tools import log
 from viewsh import task
 from viewsh import stream
 from viewsh import terminal
+from viewsh.state import CurrentDirectory
+from viewsh.transport import Transport
 
 import shlex
 import traceback
@@ -24,10 +26,10 @@ class Executor(object):
             return self.call_command(self.execute_remote_command, args)
 
     def execute_remote_command(self, args):
-        execution = self.state.transport.execute(args, size=self.terminal.get_size(),
-                                                 pty=True,
-                                                 cwd=self.state.current_directory,
-                                                 environ={'TERM': 'xterm'})
+        execution = self.state[Transport].execute(args, size=self.terminal.get_size(),
+                                                  pty=True,
+                                                  cwd=self.state[CurrentDirectory],
+                                                  environ={'TERM': 'xterm'})
         q = task.Queue('execute_remote_command')
         execution.read_event = q
         execution.start()
@@ -50,8 +52,8 @@ class Executor(object):
 
     # chdir is in executor, because it may need to trigger user hooks
     def chdir(self, path):
-        new_dir = posixpath.join(self.state.current_directory, path)
-        self.state.current_directory = self.state.transport.real_path(new_dir)
+        new_dir = posixpath.join(self.state[CurrentDirectory], path)
+        self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir)
 
     def command_exit(self):
         raise SystemExit

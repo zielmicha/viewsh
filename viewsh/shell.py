@@ -4,6 +4,8 @@ from viewsh import edit
 from viewsh import task
 from viewsh import executor
 from viewsh import state
+from viewsh.transport import Transport
+from viewsh.transport import local
 
 class Shell(object):
     Prompt = prompt.Prompt
@@ -16,13 +18,13 @@ class Shell(object):
         self.prompt = self.Prompt(self.state, terminal)
 
         # this is circular dependency - this is bad
-        self.state.executor = self.Executor(self.state, terminal)
+        self.state[executor.Executor] = self.Executor(self.state, terminal)
 
     def single(self):
         self.prompt.show()
         line_edit = self.LineEdit(self.state, self.terminal)
         line = line_edit.prompt()
-        self.state.executor.execute(line)
+        self.state[executor.Executor].execute(line)
 
     def loop(self):
         while True:
@@ -34,6 +36,7 @@ def main():
     terminal = terminal.Terminal()
     terminal.start()
     shell_state = state.ShellState()
+    shell_state[Transport] = local.LocalTransport()
     rc.setup(shell_state)
     shell = Shell(terminal, shell_state)
     shell.loop()

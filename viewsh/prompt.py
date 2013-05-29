@@ -1,7 +1,9 @@
-from viewsh import rc
 from viewsh.tools import log
+from viewsh.state import CurrentDirectory, format_with_default_params
 
-PS1 = '{path} $ '
+class PS1(object):
+    def __new__(cls):
+        return '{path} $ '
 
 class Prompt(object):
     def __init__(self, state, terminal):
@@ -9,6 +11,6 @@ class Prompt(object):
         self.state = state
 
     def show(self):
-        ps1 = getattr(self.state, 'ps1', PS1)
-        prompt_text = rc.format_with_default_params(ps1, path=self.state.current_directory)
+        ps1 = self.state[PS1]
+        prompt_text = format_with_default_params(ps1, path=self.state[CurrentDirectory])
         self.terminal.write(prompt_text)
