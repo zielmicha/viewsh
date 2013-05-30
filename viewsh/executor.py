@@ -19,6 +19,7 @@ class Executor(object):
     def __init__(self, state):
         self.state = state
         self.aliases = {}
+        self.commands = {}
 
     def resolve_alias(self, name):
         return self.aliases.get(name, shell_quote(name))
@@ -43,6 +44,9 @@ class Executor(object):
             else:
                 if isinstance(event, terminal.KeyEvent) and event.char == '\x03':
                     break
+            if isinstance(event, terminal.KeyEvent) and event.char == '\x1c':
+                # always terminate
+                break
 
         proxy_term.enabled = False
 
@@ -58,7 +62,11 @@ class Execution(object):
             return
         resolved_alias = self.executor.resolve_alias(args[0])
         args[:1] = shlex.split(resolved_alias)
-        func = getattr(self, 'command_' + args[0], None)
+        func = self.executor.commands.get(args[0])
+        if not func:
+            func = getattr(self, 'command_' + args[0], None)
+        else:
+            func = partial(func, self.state, self.terminal)
         if func:
             self.call_command(func, *args[1:])
         else:
@@ -97,8 +105,11 @@ class Execution(object):
         self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir, need_dir=True)
 
     def command_exit(self):
-        self.state[Interface].quit()
-        raise SystemExit()
+        if self.state[Transport].parent:
+            self.state[Transport] = self.state[Transport].parent
+        else:
+            self.state[Interface].quit()
+            raise SystemExit()
 
     def command_cd(self, dir):
         self.chdir(dir)

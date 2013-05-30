@@ -1,5 +1,5 @@
 from viewsh import comm
-from viewsh.transport import local
+from viewsh.transport import Transport
 from viewsh import terminal
 
 class ShellState(object):
@@ -25,6 +25,21 @@ class ShellState(object):
     def __setitem__(self, key, val):
         assert isinstance(key, type)
         self._store[key] = val
+
+class EnvCache(object):
+    pass_state = True
+
+    def __init__(self, state):
+        self.state = state
+        self._environ = None
+        self.cache_for = None
+
+    @property
+    def environ(self):
+        if self.state[Transport] != self.cache_for:
+            self._environ = self.state[Transport].get_environ()
+            self.cache_for = self.state[Transport]
+        return self._environ
 
 class History(object):
     def __new__(cls):

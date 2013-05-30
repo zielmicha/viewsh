@@ -18,6 +18,7 @@ class SSHTransport(transport.CommandBasedTransport):
         chan = self.transport.open_session()
         if pty:
             chan.get_pty('xterm', size[0], size[1])
+        self._do_execute_command(chan, args, cwd)
         bufsize = 1 # ?
         stdin = chan.makefile('rb', bufsize)
         stdout = chan.makefile('wb', bufsize)
@@ -26,13 +27,17 @@ class SSHTransport(transport.CommandBasedTransport):
 
     def execute_get_output(self, args, cwd='/'):
         chan = self.transport.open_session()
-        chan.exec_command(list_to_command(args))
+        self._do_execute_command(chan, args, cwd)
         input = chan.makefile('rb')
         data = input.read()
         code = chan.recv_exit_status()
         if code != 0:
             raise subprocess.CalledProcessError(code, args)
         return data
+
+    def _do_execute_command(self, chan, args, cwd):
+        prefix = 'cd %s' % shell_quote(cwd)
+        chan.exec_command(prefix + ';' + list_to_command(args))
 
     def real_path(self, path, need_dir):
         return self.execute_get_output(['realpath', shell_quote(path)]).strip()

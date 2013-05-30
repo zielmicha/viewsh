@@ -20,6 +20,7 @@ signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 class LocalTransport(transport.CommandBasedTransport):
     def __init__(self):
         super(LocalTransport, self).__init__()
+        self.parent = None
 
     def execute(self, args, size=None, pty=False, cwd='/', environ={}):
         pid, fd = _pty.fork()

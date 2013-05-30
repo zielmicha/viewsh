@@ -26,3 +26,6 @@ def default_rc(state):
         'py': 'ipython3 --no-confirm-exit --no-banner',
         'gs': 'git status',
     })
+
+    from viewsh import commands
+    commands.register(state)
