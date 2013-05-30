@@ -82,10 +82,9 @@ class Execution(object):
         except:
             traceback.print_exc()
 
-    # chdir is in executor, because it may need to trigger user hooks
     def chdir(self, path):
         new_dir = posixpath.join(self.state[CurrentDirectory], path)
-        self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir)
+        self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir, need_dir=True)
 
     def command_exit(self):
         self.state[Interface].quit()

@@ -1,3 +1,4 @@
+from viewsh.tools import log
 from viewsh import transport
 from viewsh import stream
 
@@ -9,10 +10,13 @@ import struct
 import signal
 import traceback
 import sys
+import subprocess
+import stat
+import errno
 
 signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
-class LocalTransport(transport.Transport):
+class LocalTransport(transport.CommandBasedTransport):
     def __init__(self):
         super(LocalTransport, self).__init__()
 
@@ -37,7 +41,13 @@ class LocalTransport(transport.Transport):
             fd2 = os.dup(fd)
             return stream.FileStream(os.fdopen(fd, 'r', 0), os.fdopen(fd2, 'w', 0))
 
-    def real_path(self, path):
+    def execute_get_output(self, args, cwd='/'):
+        return subprocess.check_output(args=args, cwd=cwd)
+
+    def real_path(self, path, need_dir):
         new_path = os.path.realpath(path)
-        os.stat(new_path)
+        s = os.stat(new_path)
+        if need_dir:
+            if not stat.S_ISDIR(s.st_mode):
+                raise IOError(errno.ENOTDIR, 'Not a directory: %r' % new_path)
         return new_path

@@ -14,7 +14,10 @@ class ShellState(object):
     def __getitem__(self, key):
         assert isinstance(key, type)
         if key not in self._store:
-            val = key()
+            if getattr(key, 'pass_state', False):
+                val = key(self)
+            else:
+                val = key()
             self._store[key] = val
 
         return self._store[key]

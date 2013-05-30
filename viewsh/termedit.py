@@ -39,6 +39,8 @@ class TermLineEdit(object):
             self.__finished = True
         elif event.char == '\x7f': # backspace
             self.backspace()
+        elif event.char == '\x03': # ctrl-c
+            self.clear()
         elif event.type == 'left':
             self.move(-1)
         elif event.type == 'right':

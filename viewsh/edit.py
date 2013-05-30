@@ -1,9 +1,11 @@
 from viewsh import termedit
 from viewsh import task
-from viewsh.tools import log
-from viewsh.state import History
+from viewsh.tools import log, shell_quote
+from viewsh.state import History, CurrentDirectory
+from viewsh.transport import Transport
 
 from functools import partial
+import posixpath
 
 class LineEdit(termedit.TermLineEdit):
     def __init__(self, state, terminal):
@@ -43,11 +45,28 @@ class LineEdit(termedit.TermLineEdit):
                         and_then=finish)
 
 class Completor(object):
+    pass_state = True
+
+    def __init__(self, state):
+        self.state = state
+
     def complete(self, buff):
-        if buff == 'l':
-            return 'ls '
-        if buff == 'foo':
-            import time
-            time.sleep(1)
-            return 'foobar '
-        return buff
+        split = buff.split(' ')
+        if not split:
+            return buff
+        if len(split) == 1:
+            return self.complete_command(split[0])
+        else:
+            result = self.complete_option(split[0], split[-1])
+            return ' '.join(split[:-1]) + ' ' + result
+
+    def complete_option(self, cmd, option):
+        completions = self.state[Transport].file_completions(option,
+                                                             cwd=self.state[CurrentDirectory])
+        if len(completions) == 1:
+            return shell_quote(completions[0]) + '/'
+        else:
+            return option
+
+    def complete_command(self, cmd):
+        return cmd
