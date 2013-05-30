@@ -11,21 +11,17 @@ from viewsh.transport import local
 class Shell(object):
     Prompt = prompt.Prompt
     LineEdit = edit.LineEdit
-    Executor = executor.Executor
 
     def __init__(self, terminal, state):
         self.terminal = terminal
         self.state = state
         self.prompt = self.Prompt(self.state, terminal)
 
-        # this is circular dependency - this is bad
-        self.state[executor.Executor] = self.Executor(self.state, terminal)
-
     def single(self):
         self.prompt.show()
         line_edit = self.LineEdit(self.state, self.terminal)
         line = line_edit.prompt()
-        self.state[executor.Executor].execute(line)
+        self.state[executor.Executor].execute(self.terminal, line)
 
     def loop(self):
         while True:

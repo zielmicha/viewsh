@@ -1,4 +1,4 @@
-from viewsh.tools import log
+from viewsh.tools import log, shell_quote
 from viewsh import task
 from viewsh import stream
 from viewsh import terminal
@@ -14,17 +14,22 @@ import posixpath
 from functools import partial
 
 class Executor(object):
-    def __init__(self, state, terminal):
-        self.state = state
-        self.terminal = terminal
+    pass_state = True
 
-    def execute(self, command):
-        proxy_term = terminal.ProxyTerminal(self.terminal)
+    def __init__(self, state):
+        self.state = state
+        self.aliases = {}
+
+    def resolve_alias(self, name):
+        return self.aliases.get(name, shell_quote(name))
+
+    def execute(self, term, command):
+        proxy_term = terminal.ProxyTerminal(term)
         proxy_term.key_event = None
         q = task.Queue()
-        self.terminal.key_event = q
+        term.key_event = q
 
-        execution = Execution(self.state, proxy_term)
+        execution = Execution(self, self.state, proxy_term)
         def execute():
             execution.execute(command)
             q.stop()
@@ -42,12 +47,15 @@ class Executor(object):
         proxy_term.enabled = False
 
 class Execution(object):
-    def __init__(self, state, terminal):
+    def __init__(self, executor, state, terminal):
         self.state = state
         self.terminal = terminal
+        self.executor = executor
 
     def execute(self, command):
         args = shlex.split(command)
+        resolved_alias = self.executor.resolve_alias(args[0])
+        args[:1] = shlex.split(resolved_alias)
         if not args:
             return
         func = getattr(self, 'command_' + args[0], None)
