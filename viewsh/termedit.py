@@ -10,6 +10,7 @@ class TermLineEdit(object):
         self.terminal = terminal
         self.buff = ''
         self.pos = 0
+        self.q = task.Queue('termedit')
         self.__finished = False
         self.__termwrite = TerminalWriter(terminal)
 
@@ -17,12 +18,10 @@ class TermLineEdit(object):
         self.screen_offset = self.terminal.get_cursor_position()[0] - 1
 
     def prompt(self):
-        q = task.Queue('termedit')
-        self.terminal.key_event = q
+        self.terminal.key_event = self.q
         self.__init()
-        for event in q:
-            if isinstance(event, KeyEvent):
-                self.handle_key(event)
+        for event in self.q:
+            self.handle_event(event)
             if self.__finished:
                 self.move_to(len(self.buff))
                 self.terminal.write('\r\n')
@@ -30,6 +29,10 @@ class TermLineEdit(object):
 
     def finished(self):
         return self.buff
+
+    def handle_event(self, event):
+        if isinstance(event, KeyEvent):
+            self.handle_key(event)
 
     def handle_key(self, event):
         if event.char in '\r\n':
@@ -85,6 +88,11 @@ class TermLineEdit(object):
     def __normalize(self):
         self.pos = max(self.pos, 0)
         self.pos = min(self.pos, len(self.buff))
+
+    def set(self, data):
+        if data == self.buff: return
+        self.clear()
+        self.add(data)
 
     def add(self, data):
         ' Add data to buffer at current pos, and move cursor at the end of it.'
