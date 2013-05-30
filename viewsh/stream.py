@@ -28,8 +28,8 @@ class StreamCloseEvent(object):
     pass
 
 class FileStream(Stream):
-    def __init__(self, input, output, buffer_size=1):
-        self.reader = FileStreamReader(input, buffer_size)
+    def __init__(self, input, output, buffer_size=1, select_read=False):
+        self.reader = FileStreamReader(input, buffer_size, select_read=select_read)
         self.writer = FileStreamWriter(output)
 
     def start(self):
@@ -48,13 +48,16 @@ class FileStream(Stream):
     read_event = property(fset=set_read_event)
 
 class FileStreamReader(task.Task):
-    def __init__(self, input, buffer_size):
+    def __init__(self, input, buffer_size, select_read):
         self.read_event = task.NullQueue()
         self.buffer_size = buffer_size
+        self.select_read = select_read
         self.input = input
 
     def run(self):
         while True:
+            if self.select_read:
+                _, _, _ = select([self.input], [], [self.input])
             try:
                 data = self.input.read(self.buffer_size)
                 if not data:

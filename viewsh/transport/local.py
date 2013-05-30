@@ -40,8 +40,10 @@ class LocalTransport(transport.CommandBasedTransport):
 
             os._exit(0)
         else:
+            fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NDELAY)
             fd2 = os.dup(fd)
-            return stream.FileStream(os.fdopen(fd, 'r', 0), os.fdopen(fd2, 'w', 0))
+            return stream.FileStream(os.fdopen(fd, 'r', 0), os.fdopen(fd2, 'w', 0),
+                                     select_read=True, buffer_size=4096)
 
     def execute_get_output(self, args, cwd='/'):
         return subprocess.check_output(args=args, cwd=cwd)
