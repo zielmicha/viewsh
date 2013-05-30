@@ -1,5 +1,5 @@
 from viewsh import task
-from viewsh.tools import log
+from viewsh.tools import log, Exit
 import sys
 import codecs
 import tty, termios
@@ -10,7 +10,14 @@ import fcntl
 import termios
 import struct
 
-class Terminal(task.Task):
+class BaseTerminal(object):
+    def write_normal(self, data):
+        self.write(data.replace('\n', '\r\n'))
+
+    def get_width(self):
+        return self.get_size()[0]
+
+class Terminal(task.Task, BaseTerminal):
     '''
     Handles reading from and writing to terminal.
     '''
@@ -96,14 +103,29 @@ class Terminal(task.Task):
         with self.lock:
             self.stdout.write(data)
 
-    def write_normal(self, data):
-        self.write(data.replace('\n', '\r\n'))
-
     def get_size(self):
         return struct.unpack('hh', fcntl.ioctl(0, termios.TIOCGWINSZ, '1234'))[::-1]
 
-    def get_width(self):
-        return self.get_size()[0]
+    def check(self):
+        ''' check if terminal is still working '''
+        pass
+
+class ProxyTerminal(BaseTerminal):
+    def __init__(self, terminal):
+        self.terminal = terminal
+        self.key_event = task.NullQueue()
+        self.enabled = True
+
+    def get_size(self):
+        return self.terminal.get_size()
+
+    def write(self, data):
+        if self.enabled:
+            self.terminal.write(data)
+
+    def check(self):
+        if not self.enabled:
+            raise Exit()
 
 class NormalWriter(object):
     ''' Write to raw terminal as if it isn't raw. '''

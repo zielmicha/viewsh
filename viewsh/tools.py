@@ -6,3 +6,6 @@ def log(*args, **kwargs):
 def _log_real(*args, **kwargs):
     # don't clobber terminal output
     pass # print('LOG', *args)
+
+class Exit(BaseException):
+    pass

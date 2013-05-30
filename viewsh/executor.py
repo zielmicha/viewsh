@@ -11,7 +11,37 @@ import traceback
 import sys
 import posixpath
 
+from functools import partial
+
 class Executor(object):
+    def __init__(self, state, terminal):
+        self.state = state
+        self.terminal = terminal
+
+    def execute(self, command):
+        proxy_term = terminal.ProxyTerminal(self.terminal)
+        proxy_term.key_event = None
+        q = task.Queue()
+        self.terminal.key_event = q
+
+        execution = Execution(self.state, proxy_term)
+        def execute():
+            execution.execute(command)
+            q.stop()
+
+        task.async(execute)
+
+        for event in q:
+            if proxy_term.key_event:
+                # inferior is able to process ctrl-c itself
+                proxy_term.key_event.post(event)
+            else:
+                if isinstance(event, terminal.KeyEvent) and event.char == '\x03':
+                    break
+
+        proxy_term.enabled = False
+
+class Execution(object):
     def __init__(self, state, terminal):
         self.state = state
         self.terminal = terminal
@@ -24,7 +54,7 @@ class Executor(object):
         if func:
             self.call_command(func, *args[1:])
         else:
-            return self.call_command(self.execute_remote_command, args)
+            self.call_command(self.execute_remote_command, args)
 
     def execute_remote_command(self, args):
         execution = self.state[Transport].execute(args, size=self.terminal.get_size(),
@@ -35,6 +65,7 @@ class Executor(object):
         execution.read_event = q
         execution.start()
         self.terminal.key_event = q
+        self.terminal.check()
         for event in q:
             if isinstance(event, stream.StreamCloseEvent):
                 break
@@ -47,7 +78,7 @@ class Executor(object):
         try:
             func(*args)
         except (IOError, OSError) as err:
-            sys.stderr.write('viewsh: %s\n' % err)
+            self.terminal.write_normal('viewsh: %s\n' % err)
         except:
             traceback.print_exc()
 

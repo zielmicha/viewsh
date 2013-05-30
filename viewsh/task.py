@@ -1,3 +1,4 @@
+from viewsh.tools import log
 from Queue import Queue as _Queue
 import threading
 import traceback
@@ -60,9 +61,13 @@ class Task(object):
         self.lock = threading.Lock()
 
     def start(self):
+        log("starting %r" % self, level=3)
         self.thread = threading.Thread(target=self.__run)
         self.thread.daemon = True
         self.thread.start()
+
+    def __finish(self):
+        log("finishing %r" % self, level=3)
 
     def __run(self):
         try:
@@ -73,6 +78,7 @@ class Task(object):
                 traceback.print_exc()
             sys.exitfunc()
             os._exit(1)
+        self.__finish()
 
 class async(Task):
     ''' Run func in separete thread. '''
@@ -91,6 +97,10 @@ class AsyncCall(object):
         self.current_call_id = 0
 
     def call(self, func, and_then=None):
+        '''
+        Call func in separete thread. After completion
+        call and_then in target_queue.
+        '''
         self.abort()
         call_id = self.current_call_id
 
