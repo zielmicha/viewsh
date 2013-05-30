@@ -61,10 +61,13 @@ class Completor(object):
             return ' '.join(split[:-1]) + ' ' + result
 
     def complete_option(self, cmd, option):
+        dirs_only = cmd == 'cd'
         completions = self.state[Transport].file_completions(option,
-                                                             cwd=self.state[CurrentDirectory])
+                                                             cwd=self.state[CurrentDirectory],
+                                                             dirs_only=dirs_only)
         if len(completions) == 1:
-            return shell_quote(completions[0]) + '/'
+            if dirs_only: completions[0] += '/'
+            return shell_quote(completions[0])
         else:
             return option
 
