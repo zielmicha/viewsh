@@ -10,7 +10,7 @@ class LineEdit(termedit.TermLineEdit):
 
     def handle_key(self, event):
         if event.type in ('up', 'down'):
-            history = self.state[history]
+            history = self.state[History]
             if not history: history = [self.buff]
             self.history_pos += +1 if event.type == 'down' else -1
             self.history_pos %= len(history)

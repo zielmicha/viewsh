@@ -51,8 +51,9 @@ class Task(object):
     def __run(self):
         try:
             self.run()
-        except:
+        except BaseException as err:
             # normally, there is no point to continue
-            traceback.print_exc()
+            if not isinstance(err, (SystemExit, KeyboardInterrupt)):
+                traceback.print_exc()
             sys.exitfunc()
             os._exit(1)

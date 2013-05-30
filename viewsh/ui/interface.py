@@ -7,3 +7,6 @@ class Interface(object):
         level = kwargs.get('level', 0)
         if level <= self.debug_level:
             print ' '.join(map(str, args))
+
+    def quit(self):
+        raise SystemExit

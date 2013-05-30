@@ -4,6 +4,7 @@ from viewsh import edit
 from viewsh import task
 from viewsh import executor
 from viewsh import state
+from viewsh import comm
 from viewsh.transport import Transport
 from viewsh.transport import local
 
@@ -37,6 +38,7 @@ def main():
     terminal.start()
     shell_state = state.ShellState()
     shell_state[Transport] = local.LocalTransport()
+    shell_state[comm.Interface].patch_log()
     rc.setup(shell_state)
     shell = Shell(terminal, shell_state)
     shell.loop()

@@ -4,6 +4,7 @@ from viewsh import stream
 from viewsh import terminal
 from viewsh.state import CurrentDirectory
 from viewsh.transport import Transport
+from viewsh.comm import Interface
 
 import shlex
 import traceback
@@ -56,7 +57,7 @@ class Executor(object):
         self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir)
 
     def command_exit(self):
-        raise SystemExit
+        self.state[Interface].quit()
 
     def command_cd(self, dir):
         self.chdir(dir)
