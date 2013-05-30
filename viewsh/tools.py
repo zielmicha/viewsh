@@ -20,6 +20,9 @@ def shell_quote(arg):
     else:
         return "''"
 
+def list_to_command(args):
+    return ' '.join(map(shell_quote, args))
+
 def as_utf8(arg):
     if isinstance(arg, str):
         return arg
