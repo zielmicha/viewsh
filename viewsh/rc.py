@@ -19,7 +19,7 @@ def get_rc_paths():
         '/etc/viewsh.rc.py']
 
 def default_rc(state):
-    state[PS1] = '{cyan}{path}{reset} {red}{bold}${reset} '
+    state[PS1] = '{red}{user}{yellow}@{cyan}{host}{reset} {red}{path} {bold}${reset} '
     state[Executor].aliases.update({
         'ls': 'ls --color',
         '..': 'cd ..',

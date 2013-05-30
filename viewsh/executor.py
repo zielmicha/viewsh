@@ -54,10 +54,10 @@ class Execution(object):
 
     def execute(self, command):
         args = shlex.split(command)
-        resolved_alias = self.executor.resolve_alias(args[0])
-        args[:1] = shlex.split(resolved_alias)
         if not args:
             return
+        resolved_alias = self.executor.resolve_alias(args[0])
+        args[:1] = shlex.split(resolved_alias)
         func = getattr(self, 'command_' + args[0], None)
         if func:
             self.call_command(func, *args[1:])
@@ -87,6 +87,8 @@ class Execution(object):
             func(*args)
         except (IOError, OSError) as err:
             self.terminal.write_normal('viewsh: %s\n' % err)
+        except SystemExit:
+            raise
         except:
             traceback.print_exc()
 
@@ -96,6 +98,7 @@ class Execution(object):
 
     def command_exit(self):
         self.state[Interface].quit()
+        raise SystemExit()
 
     def command_cd(self, dir):
         self.chdir(dir)

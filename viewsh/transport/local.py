@@ -13,6 +13,7 @@ import sys
 import subprocess
 import stat
 import errno
+import socket
 
 signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
@@ -51,3 +52,8 @@ class LocalTransport(transport.CommandBasedTransport):
             if not stat.S_ISDIR(s.st_mode):
                 raise IOError(errno.ENOTDIR, 'Not a directory: %r' % new_path)
         return new_path
+
+    def connect(self, host, port):
+        sock = socket.socket()
+        sock.connect((host, port))
+        return sock
