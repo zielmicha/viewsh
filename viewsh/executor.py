@@ -2,7 +2,7 @@ from viewsh.tools import log, shell_quote
 from viewsh import task
 from viewsh import stream
 from viewsh import terminal
-from viewsh.shell import CurrentDirectory
+from viewsh.shell import CurrentDirectory, SwitchTransport
 from viewsh.transport import Transport
 from viewsh.comm import Interface
 
@@ -105,8 +105,8 @@ class Execution(object):
         self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir, need_dir=True)
 
     def command_exit(self):
-        if self.state[Transport].parent:
-            self.state[Transport] = self.state[Transport].parent
+        if not self.state[SwitchTransport].empty():
+            self.state[SwitchTransport].pop()
         else:
             self.state[Interface].quit()
             raise SystemExit()

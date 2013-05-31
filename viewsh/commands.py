@@ -1,5 +1,6 @@
 from viewsh.transport import ssh
 from viewsh.transport import Transport
+from viewsh.shell import SwitchTransport
 from viewsh.executor import Executor
 
 def vssh(state, terminal, userhost):

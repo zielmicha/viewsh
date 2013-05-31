@@ -2,6 +2,7 @@ from viewsh import terminal
 from viewsh.prompt import PS1
 from viewsh.executor import Executor
 from viewsh.transport import Transport
+from viewsh.shell import CurrentDirectory, SwitchTransport, EnvCache
 
 import os
 
@@ -27,9 +28,14 @@ def default_rc(state):
         'py': 'ipython3 --no-confirm-exit --no-banner',
         'gs': 'git status',
     })
+    state[SwitchTransport].save_fields.append(CurrentDirectory)
+    state[SwitchTransport].switch_hook.add(on_new_transport)
 
     from viewsh import commands
     commands.register(state)
+
+def on_new_transport(state, old_values):
+    state[CurrentDirectory] = state[EnvCache].environ.get('HOME', '/')
 
 def main():
     # Assemble everything.

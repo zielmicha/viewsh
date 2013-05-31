@@ -22,3 +22,21 @@ class ShellState(object):
     def __setitem__(self, key, val):
         assert isinstance(key, type)
         self._store[key] = val
+
+class Hook(object):
+    def __init__(self, reduce=None, default=None):
+        self._funcs = []
+        self._reduce = reduce
+        self._default = default
+
+    def add(self, func):
+        self._funcs.append(func)
+
+    def call(self, *args, **kwargs):
+        val = []
+        for func in self._funcs:
+            val.append(func(*args, **kwargs))
+        if self._reduce:
+            return reduce(self._reduce, val, self._default)
+        else:
+            return val
