@@ -13,10 +13,15 @@ class Prompt(object):
         self.state = state
 
     def show(self):
+        self.make_whole_line()
         ps1 = self.state[PS1]
         environ = self.state[EnvCache].environ
         prompt_text = format_with_default_params(ps1,
                                                  path=self.state[CurrentDirectory],
                                                  host=self.state[Transport].get_hostname(),
                                                  user=environ.get('USER'))
-        self.terminal.write(prompt_text)
+        self.terminal.write_normal(prompt_text)
+
+    def make_whole_line(self):
+        if self.terminal.get_cursor_position()[0] != 1:
+            self.terminal.write_normal('\n')
