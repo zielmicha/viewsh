@@ -1,5 +1,5 @@
 from viewsh.tools import log
-from viewsh.state import CurrentDirectory, format_with_default_params, \
+from viewsh.shell import CurrentDirectory, format_with_default_params, \
     EnvCache
 from viewsh.transport import Transport
 

@@ -2,7 +2,7 @@ from viewsh.tools import log, shell_quote
 from viewsh import task
 from viewsh import stream
 from viewsh import terminal
-from viewsh.state import CurrentDirectory
+from viewsh.shell import CurrentDirectory
 from viewsh.transport import Transport
 from viewsh.comm import Interface
 

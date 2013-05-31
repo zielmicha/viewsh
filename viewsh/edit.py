@@ -1,7 +1,7 @@
 from viewsh import termedit
 from viewsh import task
 from viewsh.tools import log, shell_quote
-from viewsh.state import History, CurrentDirectory
+from viewsh.shell import History, CurrentDirectory
 from viewsh.transport import Transport
 
 from functools import partial
