@@ -50,7 +50,7 @@ def main():
     terminal = terminal.Terminal()
     terminal.start()
     state = shell_state.ShellState()
-    state[Transport] = local.LocalTransport()
+    state[SwitchTransport].switch(local.LocalTransport())
     state[comm.Interface].patch_log()
     setup(state)
     prompt = prompt.Prompt(state, terminal)

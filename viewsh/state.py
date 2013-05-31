@@ -23,6 +23,9 @@ class ShellState(object):
         assert isinstance(key, type)
         self._store[key] = val
 
+    def __contains__(self, key):
+        return key in self._store
+
 class Hook(object):
     def __init__(self, reduce=None, default=None):
         self._funcs = []

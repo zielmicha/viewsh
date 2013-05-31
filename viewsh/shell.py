@@ -39,8 +39,11 @@ class SwitchTransport(object):
         return not self.stack
 
     def switch(self, new):
-        values = { k:self.state[k] for k in self.save_fields }
-        self.stack.append(values)
+        if Transport in self.state:
+            values = { k:self.state[k] for k in self.save_fields }
+            self.stack.append(values)
+        else:
+            values = {}
         self.state[Transport] = new
         self.switch_hook.call(self.state, values)
 

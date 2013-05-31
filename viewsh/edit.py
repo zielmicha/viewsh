@@ -25,6 +25,9 @@ class LineEdit(termedit.TermLineEdit):
             self.add(history[self.history_pos])
         elif event.char == '\t':
             self.complete()
+        elif event.char == '\x04':
+            if not self.buff:
+                self.add('exit')
         else:
             self.completion_async.abort()
             return super(LineEdit, self).handle_key(event)
