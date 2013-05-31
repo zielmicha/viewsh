@@ -18,9 +18,14 @@ class EnvCache(object):
             self.cache_for = self.state[Transport]
         return self._environ
 
-class History(object):
-    def __new__(cls):
-        return []
+class History(list):
+    def __init__(self):
+        list.__init__(self)
+        self.modify_hook = Hook()
+
+    def append(self, item):
+        self.modify_hook.call(self)
+        list.append(self, item)
 
 class CurrentDirectory(object):
     def __new__(cls):
