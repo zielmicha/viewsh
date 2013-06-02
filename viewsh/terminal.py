@@ -21,12 +21,13 @@ class Terminal(task.Task, BaseTerminal):
     '''
     Handles reading from and writing to terminal.
     '''
-    def __init__(self):
+    def __init__(self, tty):
         task.Task.__init__(self)
         self.key_event = task.NullQueue()
         self.get_cursor_position_event = task.Queue()
         self._buff = ''
-        self.stdout = os.fdopen(1, 'w', 0)
+        self._tty = tty
+        self.stdout = os.fdopen(self._tty, 'w', 0)
 
     def run(self):
         self._init()
@@ -42,16 +43,16 @@ class Terminal(task.Task, BaseTerminal):
         return map(int, data.split(';'))[::-1]
 
     def _init(self):
-        self._termattrs = termios.tcgetattr(0)
-        tty.setraw(0)
+        self._termattrs = termios.tcgetattr(self._tty)
+        tty.setraw(self._tty)
         atexit.register(self._finish, 0)
-        sys.stdout = sys.stderr = NormalWriter(self)
+        sys.stdout = sys.stderr = NormalWriter(self) # ?
 
     def _finish(self, *args):
         termios.tcsetattr(0, termios.TCSANOW, self._termattrs)
 
     def _run(self):
-        input = os.fdopen(0, 'r', 0)
+        input = os.fdopen(self._tty, 'r', 0)
         decoder = codecs.getincrementaldecoder('utf-8')()
         while True:
             raw = input.read(1)
@@ -104,7 +105,7 @@ class Terminal(task.Task, BaseTerminal):
             self.stdout.write(data)
 
     def get_size(self):
-        return struct.unpack('hh', fcntl.ioctl(0, termios.TIOCGWINSZ, '1234'))[::-1]
+        return struct.unpack('hh', fcntl.ioctl(self._tty, termios.TIOCGWINSZ, '1234'))[::-1]
 
     def check(self):
         ''' check if terminal is still working '''

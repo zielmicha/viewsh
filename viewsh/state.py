@@ -1,5 +1,5 @@
 
-class ShellState(object):
+class State(object):
     '''
     Class that keeps track of state of anything.
     It is essentialy dictionary which keys are types.

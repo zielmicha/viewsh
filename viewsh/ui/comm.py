@@ -56,6 +56,6 @@ class Server(task.Task):
             # child
             os.environ['VIEWSH_SOCKET'] = self.sock_path
             os.chdir(os.path.dirname(__file__) + '/../..')
-            os.execvp('python', ['python', '-m', 'viewsh.rc'])
+            os.execvp('python', ['python', '-m', 'viewsh.main'])
         else:
             return fd

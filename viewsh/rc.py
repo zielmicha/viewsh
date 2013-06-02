@@ -61,24 +61,24 @@ def on_history_modified(history):
     except (IOError, OSError) as err:
         log('writing history failed %r' % err)
 
-def main():
+def main(tty, gstate):
     # Assemble everything.
     from viewsh import terminal
     from viewsh import rc
-    from viewsh import state as shell_state
+    from viewsh import shell
     from viewsh.transport import local
     from viewsh import comm
     from viewsh import edit
     from viewsh import prompt
 
-    terminal = terminal.Terminal()
+    terminal = terminal.Terminal(tty)
     terminal.start()
-    state = shell_state.ShellState()
+    state = shell.ShellState()
+    state[comm.GlobalState] = gstate
 
     setup(state)
 
     state[SwitchTransport].switch(local.LocalTransport())
-    state[comm.Interface].patch_log()
     prompt = prompt.Prompt(state, terminal)
 
     while True:
@@ -86,6 +86,3 @@ def main():
         line_edit = edit.LineEdit(state, terminal)
         line = line_edit.prompt()
         state[Executor].execute(terminal, line)
-
-if __name__ == '__main__':
-    main()

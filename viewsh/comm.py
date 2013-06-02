@@ -2,6 +2,8 @@ import socket
 import os
 import pickle
 
+from viewsh import state
+
 class Interface(object):
     def __init__(self):
         self._path = os.environ.get('VIEWSH_SOCKET')
@@ -34,3 +36,6 @@ class Interface(object):
                 return None
 
         return call
+
+class GlobalState(state.State):
+    pass

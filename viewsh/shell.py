@@ -1,7 +1,10 @@
 from viewsh import comm
 from viewsh.transport import Transport
 from viewsh import terminal
-from viewsh.state import Hook
+from viewsh.state import Hook, State
+
+class ShellState(State):
+    pass
 
 class EnvCache(object):
     pass_state = True
