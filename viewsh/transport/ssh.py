@@ -19,7 +19,7 @@ class SSHTransport(transport.CommandBasedTransport):
         if pty:
             chan.get_pty('xterm', size[0], size[1])
         self._do_execute_command(chan, args, cwd)
-        bufsize = 1 # ?
+        bufsize = 0 # FIXME: slow reads, async?
         stdin = chan.makefile('rb', bufsize)
         stdout = chan.makefile('wb', bufsize)
         # TODO: stderr?
