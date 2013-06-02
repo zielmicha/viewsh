@@ -41,7 +41,7 @@ def default_rc(state):
     commands.register(state)
 
 def on_new_transport(state, old_values):
-    state[CurrentDirectory] = state[EnvCache].environ.get('HOME', '/')
+    state[CurrentDirectory] = state[EnvCache].home
 
 def load_history(history):
     try:
@@ -74,9 +74,11 @@ def main():
     terminal = terminal.Terminal()
     terminal.start()
     state = shell_state.ShellState()
+
+    setup(state)
+
     state[SwitchTransport].switch(local.LocalTransport())
     state[comm.Interface].patch_log()
-    setup(state)
     prompt = prompt.Prompt(state, terminal)
 
     while True:

@@ -2,7 +2,8 @@ from viewsh.tools import log, shell_quote
 from viewsh import task
 from viewsh import stream
 from viewsh import terminal
-from viewsh.shell import CurrentDirectory, SwitchTransport
+from viewsh.shell import CurrentDirectory, SwitchTransport, \
+    EnvCache
 from viewsh.transport import Transport
 from viewsh.comm import Interface
 
@@ -111,5 +112,7 @@ class Execution(object):
             self.state[Interface].quit()
             raise SystemExit()
 
-    def command_cd(self, dir):
+    def command_cd(self, dir=None):
+        if not dir:
+            dir = self.state[EnvCache].home
         self.chdir(dir)

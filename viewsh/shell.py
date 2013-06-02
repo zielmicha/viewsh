@@ -18,6 +18,10 @@ class EnvCache(object):
             self.cache_for = self.state[Transport]
         return self._environ
 
+    @property
+    def home(self):
+        return self.environ.get('HOME', '/')
+
 class History(list):
     def __init__(self):
         list.__init__(self)
