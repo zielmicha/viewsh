@@ -37,5 +37,5 @@ class Interface(object):
 
         return call
 
-class GlobalState(state.State):
+class World(state.State):
     pass

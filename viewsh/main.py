@@ -2,10 +2,10 @@ from viewsh import rc
 from viewsh import comm
 
 def main():
-    gstate = comm.GlobalState()
-    gstate[comm.Interface].patch_log()
+    world = comm.World()
+    world[comm.Interface].patch_log()
 
-    rc.main(0, gstate)
+    rc.main(0, world)
 
 if __name__ == '__main__':
     main()
