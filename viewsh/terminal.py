@@ -46,7 +46,6 @@ class Terminal(task.Task, BaseTerminal):
         self._termattrs = termios.tcgetattr(self._tty)
         tty.setraw(self._tty)
         atexit.register(self._finish, 0)
-        sys.stdout = sys.stderr = NormalWriter(self) # ?
 
     def _finish(self, *args):
         termios.tcsetattr(0, termios.TCSANOW, self._termattrs)
