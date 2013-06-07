@@ -10,3 +10,8 @@ class Interface(object):
 
     def quit(self):
         raise SystemExit
+
+    def patch_log(self):
+        # set local viewsh.log to remote function
+        import viewsh.tools
+        viewsh.tools._log_real = self.log

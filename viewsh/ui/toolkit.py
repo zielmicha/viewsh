@@ -14,7 +14,9 @@ gobject.threads_init()
 gtk.gdk.threads_init() # not sure if needed
 # </warning>
 
-class Main:
+from viewsh import task
+
+class Main(task.Task):
     def __init__(self, main):
         self.main = main
 
