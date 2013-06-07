@@ -45,10 +45,10 @@ class Terminal(task.Task, BaseTerminal):
     def _init(self):
         self._termattrs = termios.tcgetattr(self._tty)
         tty.setraw(self._tty)
-        atexit.register(self._finish, 0)
+        atexit.register(self._finish)
 
     def _finish(self, *args):
-        termios.tcsetattr(0, termios.TCSANOW, self._termattrs)
+        termios.tcsetattr(self._tty, termios.TCSANOW, self._termattrs)
 
     def _run(self):
         input = os.fdopen(self._tty, 'r', 0)
