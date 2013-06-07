@@ -11,13 +11,13 @@ def main():
     debug_level = int(os.environ.get('DEBUG', 0))
 
     master, slave = pty.openpty()
-    iface = interface.Interface(debug_level=debug_level)
+    iface = interface.Interface()
 
     term = toolkit.Terminal()
     term.set_pty(master)
     toolkit.Main(term).start()
 
-    shell_main.main(fd=slave, interface=iface)
+    shell_main.main(fd=slave, interface=interface.InterfaceWrapper(iface))
 
 if __name__ == '__main__':
     main()

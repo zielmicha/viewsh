@@ -1,12 +1,16 @@
 from __future__ import print_function
 import re
+import os
 
 def log(*args, **kwargs):
     _log_real(*map(str, args), **kwargs)
 
+_debug_level = int(os.environ.get('DEBUG', 1))
+
 def _log_real(*args, **kwargs):
-    # don't clobber terminal output
-    pass # print('LOG', *args)
+    level = kwargs.get('level', 0)
+    if level <= _debug_level:
+        print(*args)
 
 class Exit(BaseException):
     pass

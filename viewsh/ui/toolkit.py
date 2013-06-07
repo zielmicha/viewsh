@@ -36,3 +36,10 @@ class Terminal:
 
     def set_pty(self, fd):
         self.widget.set_pty(fd)
+
+def run_in_ui(func):
+    gtk.threads_enter()
+    try:
+        func()
+    finally:
+        gtk.threads_leave()

@@ -109,7 +109,6 @@ class Execution(object):
         if not self.state[SwitchTransport].empty():
             self.state[SwitchTransport].pop()
         else:
-            self.state[Interface].quit()
             raise SystemExit()
 
     def command_cd(self, dir=None):
