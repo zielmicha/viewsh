@@ -48,7 +48,9 @@ class Terminal(task.Task, BaseTerminal):
         atexit.register(self._finish)
 
     def _finish(self, *args):
-        termios.tcsetattr(self._tty, termios.TCSANOW, self._termattrs)
+        if self._tty == 0:
+            termios.tcsetattr(self._tty, termios.TCSANOW, self._termattrs)
+        # not needed if run in vte
 
     def _run(self):
         input = os.fdopen(self._tty, 'r', 0)

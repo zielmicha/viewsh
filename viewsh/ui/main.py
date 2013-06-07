@@ -12,10 +12,9 @@ def main():
 
     master, slave = pty.openpty()
     iface = interface.Interface()
+    iface.create_default_shell(master)
 
-    term = toolkit.Terminal()
-    term.set_pty(master)
-    toolkit.Main(term).start()
+    toolkit.Main(iface.widget).start(daemon=False)
 
     shell_main.main(fd=slave, interface=interface.InterfaceWrapper(iface))
 

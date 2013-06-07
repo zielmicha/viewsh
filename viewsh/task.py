@@ -60,10 +60,10 @@ class Task(object):
         self.thread = None
         self.lock = threading.Lock()
 
-    def start(self):
+    def start(self, daemon=True):
         log("starting %r" % self, level=3)
         self.thread = threading.Thread(target=self.__run)
-        self.thread.daemon = True
+        self.thread.daemon = daemon
         self.thread.start()
 
     def __finish(self):
@@ -76,8 +76,9 @@ class Task(object):
             # normally, there is no point to continue
             if not isinstance(err, (SystemExit, KeyboardInterrupt)):
                 traceback.print_exc()
-            sys.exitfunc()
-            os._exit(1)
+            if not os.environ.get('ERROR_NOEXIT'):
+                sys.exitfunc()
+                os._exit(1)
         self.__finish()
 
 class async(Task):

@@ -75,6 +75,7 @@ def main(tty, world):
     terminal.start()
     state = shell.ShellState()
     state[comm.World] = world
+    state[comm.Interface] = world[comm.Interface]
 
     setup(state)
 
