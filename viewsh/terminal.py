@@ -33,6 +33,9 @@ class Terminal(task.Task, BaseTerminal):
         self._init()
         try:
             self._run()
+        except IOError as err:
+            # when master tty is closed, errno 5 is raised
+            log(err)
         finally:
             self._finish()
 

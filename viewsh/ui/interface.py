@@ -5,9 +5,7 @@ class GlobalInterface(object):
         self.widget = toolkit.MultiWindow()
         self.last_windowid = 0
 
-    def create_default_shell(self, master_pty_fd):
-        term = toolkit.Terminal()
-        term.set_pty(master_pty_fd)
+    def create_default_layout(self, term):
         self.set_layout(0)
         self.set_window(0, term)
 
@@ -27,6 +25,9 @@ class GlobalInterface(object):
     def set_window(self, window_id, widget):
         self.widget.set_window(window_id, widget)
 
+    def create_child(self):
+        return Interface(global_iface=self)
+
 class Interface(object):
     '''
     Wrapper around GlobalInterface with
@@ -42,11 +43,16 @@ class Interface(object):
         return getattr(self.global_iface, name)
 
     def set_nextto(self, widget):
+        '''
+        Chooses suitable window and replaces it with widget.
+        Returns choosen window id.
+        '''
         self.make_sure_there_is_a_split()
         which = self.layout[1]
         if which == self.window_id:
             which = self.layout[2]
         self.set_window(which, widget)
+        return which
 
 class InterfaceWrapper(object):
     def __init__(self, iface):
