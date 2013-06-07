@@ -99,7 +99,7 @@ class Execution(object):
         except SystemExit:
             raise
         except:
-            traceback.print_exc()
+            self.terminal.write_normal(traceback.format_exc())
 
     def chdir(self, path):
         new_dir = posixpath.join(self.state[CurrentDirectory], path)
