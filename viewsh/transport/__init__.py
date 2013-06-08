@@ -34,7 +34,12 @@ class CommandBasedTransport(Transport):
                 FilterType.DIRECTORY: 'd',
                 FilterType.EXECUTABLE: 'e'}[filter_type]
         cmd = '''for i in %s*; do
-        if [ -%s "$i" ]; then printf "%%s\\0" "$i"; fi
+        if [ -%s "$i" ]; then
+            if [ -d "$i" ]; then
+                i="$i/"
+            fi
+            printf "%%s\\0" "$i";
+        fi
         done''' % (shell_quote(path), test)
         output = self.execute_get_output(
             ['sh', '-c', cmd],

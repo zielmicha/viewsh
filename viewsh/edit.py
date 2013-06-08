@@ -90,10 +90,6 @@ class Completor(object):
         completions = self.state[Transport].file_completions(option,
                                                              cwd=self.state[CurrentDirectory],
                                                              filter_type=filter_type)
-        if len(completions) == 1:
-            if filter_type == FilterType.DIRECTORY:
-                completions[0] += '/'
-
         return completions
 
     def complete_command(self, cmd):
