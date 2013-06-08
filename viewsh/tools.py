@@ -32,3 +32,9 @@ def as_utf8(arg):
         return arg
     else:
         return arg.encode('utf8')
+
+class Enum(set):
+    def __getattr__(self, name):
+        if name in self:
+            return name
+        raise AttributeError

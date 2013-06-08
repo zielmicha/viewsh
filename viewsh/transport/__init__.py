@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from viewsh.tools import shell_quote, as_utf8, log
+from viewsh.tools import shell_quote, as_utf8, log, Enum
 
 class Transport(object):
     __metaclass__ = ABCMeta
@@ -22,15 +22,19 @@ class Transport(object):
     def real_path(self, path, need_dir):
         pass
 
+FilterType = Enum(['ANY', 'DIRECTORY', 'EXECUTABLE'])
+
 class CommandBasedTransport(Transport):
     def __init__(self):
         self._hostname = None
 
-    def file_completions(self, path, cwd='/', dirs_only=False):
+    def file_completions(self, path, cwd='/', filter_type=FilterType.ANY):
         path = as_utf8(path)
-        test = '-d' if dirs_only else '-e'
+        test = {FilterType.ANY: 'e',
+                FilterType.DIRECTORY: 'd',
+                FilterType.EXECUTABLE: 'e'}[filter_type]
         cmd = '''for i in %s*; do
-        if [ %s "$i" ]; then printf "%%s\\0" "$i"; fi
+        if [ -%s "$i" ]; then printf "%%s\\0" "$i"; fi
         done''' % (shell_quote(path), test)
         output = self.execute_get_output(
             ['sh', '-c', cmd],

@@ -2,7 +2,7 @@ from viewsh import termedit
 from viewsh import task
 from viewsh.tools import log, shell_quote
 from viewsh.shell import History, CurrentDirectory
-from viewsh.transport import Transport
+from viewsh.transport import Transport, FilterType
 
 from functools import partial
 import posixpath
@@ -64,15 +64,26 @@ class Completor(object):
             return ' '.join(split[:-1]) + ' ' + result
 
     def complete_option(self, cmd, option):
-        dirs_only = cmd == 'cd'
+        filter_type = {'cd': FilterType.DIRECTORY}.get(cmd, FilterType.ANY)
         completions = self.state[Transport].file_completions(option,
                                                              cwd=self.state[CurrentDirectory],
-                                                             dirs_only=dirs_only)
+                                                             filter_type=filter_type)
         if len(completions) == 1:
-            if dirs_only: completions[0] += '/'
+            if filter_type == FilterType.DIRECTORY:
+                completions[0] += '/'
             return shell_quote(completions[0])
         else:
             return option
 
     def complete_command(self, cmd):
-        return cmd
+        if cmd.startswith('./'):
+            completions = self.state[Transport].\
+                          file_completions(cmd,
+                                           cwd=self.state[CurrentDirectory],
+                                           filter_type=FilterType.EXECUTABLE)
+            if len(completions) == 1:
+                return completions[0]
+            else:
+                return cmd
+        else:
+            return cmd
