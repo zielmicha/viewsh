@@ -42,6 +42,15 @@ class SSHTransport(transport.CommandBasedTransport):
     def real_path(self, path, need_dir):
         return self.execute_get_output(['realpath', shell_quote(path)]).strip()
 
+    def get_file_content(self, path):
+        sftp = paramiko.SFTPClient.from_transport(self.transport)
+        f = sftp.open(path)
+        try:
+            data = f.read()
+        finally:
+            f.close()
+        return data
+
     def _auth(self, transport, username):
         # TODO: known hosts
         # paramiko.RSAKey.from_private_key_file(key_path)

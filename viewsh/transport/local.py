@@ -60,3 +60,7 @@ class LocalTransport(transport.CommandBasedTransport):
         sock = socket.socket()
         sock.connect((host, port))
         return sock
+
+    def get_file_content(self, path):
+        with open(path) as f:
+            return f.read()
