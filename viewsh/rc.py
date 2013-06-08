@@ -68,7 +68,7 @@ def main(fd, world, buffer, setup_func=setup):
     from viewsh import shell
     from viewsh.transport import local
     from viewsh import comm
-    from viewsh import edit
+    from viewsh import complete
     from viewsh import prompt
     from viewsh.ui import interface
 
@@ -85,6 +85,6 @@ def main(fd, world, buffer, setup_func=setup):
     prompt = prompt.Prompt(state, terminal)
 
     while True:
-        line_edit = edit.LineEdit(prompt, state, terminal)
+        line_edit = complete.ShellLineEdit(prompt, state, terminal)
         line = line_edit.prompt()
         state[Executor].execute(terminal, line)
