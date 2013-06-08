@@ -37,8 +37,9 @@ class _ToolkitWidget(object):
     pass
 
 class Terminal(_ToolkitWidget):
-    def __init__(self):
+    def __init__(self, height=30):
         self.widget = vte.Terminal()
+        self.widget.set_size(80, height)
 
     def set_pty(self, fd):
         self.widget.set_pty(fd)

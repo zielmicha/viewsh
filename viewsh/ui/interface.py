@@ -1,4 +1,5 @@
 from viewsh.ui import toolkit
+import pty
 
 class Interface(object):
     def __init__(self):
@@ -12,7 +13,7 @@ class Interface(object):
 
     def set_layout(self, layout):
         self.layout = layout
-        self.widget.set_layout(layout)
+        self.widget.set_layout(('vsplit', layout, -1)) # minibuffer
 
     def _make_windowid(self):
         self.last_windowid += 1
@@ -34,6 +35,13 @@ class Interface(object):
         self.buffers.append(buff)
         buff.widget = widget
         return buff
+
+    def create_terminal_buffer(self, **kwargs):
+        term = toolkit.Terminal(**kwargs)
+        buffer = self.create_buffer(term)
+        master, slave = pty.openpty()
+        term.set_pty(master)
+        return slave, buffer
 
 class Buffer(object):
     def __init__(self, iface, window_id=0):
