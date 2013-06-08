@@ -7,6 +7,7 @@ import glib
 import vte
 import threading
 import sys
+import contextlib
 
 # <warning>
 # DO THIS OR YOUR INTERPRATETER WILL GO INSANE
@@ -25,6 +26,7 @@ class Main(task.Task):
 
     def run(self):
         window = gtk.Window()
+        self.main.__window = window
         window.add(self.main.widget)
         window.connect('delete-event', self.quit)
         window.show_all()
@@ -72,19 +74,35 @@ class MultiWindow(_Replacable):
         _Replacable.__init__(self)
         self.windows = {}
         self.window_values = {}
+        self._Main__window = None
 
     def set_layout(self, layout):
-        self.windows = {}
-        layout_widget = build_layout(layout, self.windows)
-        self._set_widget(layout_widget.widget)
-        for id, widget in self.window_values.items():
-            self.set_window(id, widget)
+        with self._saved_size():
+            self.windows = {}
+            layout_widget = build_layout(layout, self.windows)
+            self._set_widget(layout_widget.widget)
+            for id, widget in self.window_values.items():
+                self.set_window(id, widget)
 
     def set_window(self, i, widget):
-        self.windows[i]._set_widget(widget.widget)
-        self.window_values[i] = widget
+        with self._saved_size():
+            self.windows[i]._set_widget(widget.widget)
+            self.window_values[i] = widget
 
-def build_layout(node, windows_out):
+    @contextlib.contextmanager
+    def _saved_size(self):
+        if self._Main__window:
+            w, h = self._Main__window.get_size()
+            yield
+            self._restore_size(w, h)
+        else:
+            yield
+
+    def _restore_size(self, w, h):
+        self._Main__window.set_size_request(w, h)
+        self._Main__window.resize(w, h)
+
+def build_layout(node, windows_out, path=()):
     if isinstance(node, int):
         wnd = Window(node)
         windows_out[node] = wnd
@@ -107,8 +125,8 @@ class Split(_ToolkitWidget):
         child1, child2 = children
         child1.show()
         child2.show()
-        self.widget.add1(child1)
-        self.widget.add2(child2)
+        self.widget.pack1(child1, resize=True, shrink=True)
+        self.widget.pack2(child2, resize=True, shrink=True)
 
 class Window(_Replacable):
     def __init__(self, id):
