@@ -27,6 +27,10 @@ class LineEdit(termedit.TermLineEdit):
             self.history_pos %= len(history)
             self.clear()
             self.add(history[self.history_pos])
+        elif event.type == 'home':
+            self.move_to(0)
+        elif event.type == 'end':
+            self.move_to(len(self.buff))
         elif event.char == '\t':
             self.complete()
         elif event.char == '\x04':
@@ -75,11 +79,11 @@ class Completor(object):
         if not split:
             return buff
         if len(split) == 1:
-            result = self.complete_command(split[0]) or [split[0]]
-            return result, common_prefix(result)
+            result = self.complete_command(split[0])
+            return result, common_prefix_better_than(result, split[0])
         else:
-            result = self.complete_option(split[0], split[-1]) or [split[-1]]
-            return result, ' '.join(split[:-1]) + ' ' + common_prefix(result)
+            result = self.complete_option(split[0], split[-1])
+            return result, ' '.join(split[:-1]) + ' ' + common_prefix_better_than(result, split[-1])
 
     def complete_option(self, cmd, option):
         filter_type = {'cd': FilterType.DIRECTORY}.get(cmd, FilterType.ANY)
@@ -98,9 +102,16 @@ class Completor(object):
                           file_completions(cmd,
                                            cwd=self.state[CurrentDirectory],
                                            filter_type=FilterType.EXECUTABLE)
-            return completions[0]
+            return completions
         else:
             return []
+
+def common_prefix_better_than(arr, than):
+    prefix = common_prefix(arr)
+    if len(prefix) < len(than):
+        return than
+    else:
+        return prefix
 
 def common_prefix(arr):
     if not arr:

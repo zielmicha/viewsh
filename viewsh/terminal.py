@@ -40,6 +40,7 @@ class Terminal(task.Task, BaseTerminal):
             self._finish()
 
     def get_cursor_position(self):
+        log('get_cursor_position', level=1)
         self.get_cursor_position_event = task.Queue()
         self.write('\x1b[6n')
         data = self.get_cursor_position_event.get()
@@ -100,6 +101,9 @@ class Terminal(task.Task, BaseTerminal):
                 'D': const.left,
                 'F': const.end,
                 'H': const.home,}.get(code, const.unknown_escape)
+        if code == '~':
+            kind = {'1': const.home,
+            '4': const.end,}.get(data, const.unknown_escape)
         self._post(KeyEvent(kind, char='\x1b' + mode_ind + data + code))
         if code == 'R':
             self.get_cursor_position_event.post(data)
