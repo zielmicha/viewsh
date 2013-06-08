@@ -6,15 +6,19 @@ from viewsh.transport import Transport, FilterType
 
 from functools import partial
 import posixpath
+import unittest
 
 class LineEdit(termedit.TermLineEdit):
-    def __init__(self, state, terminal):
+    def __init__(self, prompt, state, terminal):
         super(LineEdit, self).__init__(terminal)
         self.state = state
+        self._prompt = prompt
         self.history_pos = len(self.state[History])
         self.completion_async = task.AsyncCall(self.q)
+        self.key_history = []
 
     def handle_key(self, event):
+        self.key_history.append(event.char)
         if event.type in ('up', 'down'):
             self.completion_async.abort()
             history = self.state[History]
@@ -30,7 +34,11 @@ class LineEdit(termedit.TermLineEdit):
                 self.add('exit')
         else:
             self.completion_async.abort()
-            return super(LineEdit, self).handle_key(event)
+            super(LineEdit, self).handle_key(event)
+
+    def start_line(self):
+        self._prompt.show()
+        super(LineEdit, self).start_line()
 
     def finished(self):
         self.state[History].append(self.buff)
@@ -40,9 +48,15 @@ class LineEdit(termedit.TermLineEdit):
         completor = self.state[Completor]
         pos = self.pos
 
-        def finish(result):
-            self.set(result + self.buff[pos:])
-            self.move_to(len(result))
+        def finish((results, prefix)):
+            log("competion request ->", results, prefix, level=1)
+            if len(results) > 1:
+                if self.key_history[-2:] == ['\t', '\t']:
+                    self.finish_line()
+                    self.terminal.write_normal('\n'.join(results) + '\n')
+                    self.start_line()
+            self.set(prefix + self.buff[pos:])
+            self.move_to(len(prefix))
 
         self.completion_async.call(partial(completor.complete, self.buff[:pos]),
                         and_then=finish)
@@ -54,14 +68,18 @@ class Completor(object):
         self.state = state
 
     def complete(self, buff):
+        '''
+        Perform completion. Returns tuple (possible completions, complete for sure).
+        '''
         split = buff.split(' ')
         if not split:
             return buff
         if len(split) == 1:
-            return self.complete_command(split[0])
+            result = self.complete_command(split[0]) or [split[0]]
+            return result, common_prefix(result)
         else:
-            result = self.complete_option(split[0], split[-1])
-            return ' '.join(split[:-1]) + ' ' + result
+            result = self.complete_option(split[0], split[-1]) or [split[-1]]
+            return result, ' '.join(split[:-1]) + ' ' + common_prefix(result)
 
     def complete_option(self, cmd, option):
         filter_type = {'cd': FilterType.DIRECTORY}.get(cmd, FilterType.ANY)
@@ -71,19 +89,31 @@ class Completor(object):
         if len(completions) == 1:
             if filter_type == FilterType.DIRECTORY:
                 completions[0] += '/'
-            return shell_quote(completions[0])
-        else:
-            return option
+
+        return completions
 
     def complete_command(self, cmd):
-        if cmd.startswith('./'):
+        if cmd.startswith(('./', '/')):
             completions = self.state[Transport].\
                           file_completions(cmd,
                                            cwd=self.state[CurrentDirectory],
                                            filter_type=FilterType.EXECUTABLE)
-            if len(completions) == 1:
-                return completions[0]
-            else:
-                return cmd
+            return completions[0]
         else:
-            return cmd
+            return []
+
+def common_prefix(arr):
+    if not arr:
+        return ''
+    for i in xrange(max(map(len, arr))):
+        prefix = arr[0][:i  ]
+        if not all( item.startswith(prefix) for item in arr ):
+            return prefix[:-1]
+    return arr[0]
+
+class CommonPrefixTest(unittest.TestCase):
+    def test_common_prefix(self):
+        assert common_prefix(['aaa', 'a']) == 'a'
+        assert common_prefix([]) == ''
+        assert common_prefix(['aaaa', 'b']) == ''
+        assert common_prefix(['aaab', 'aab']) == 'aa'

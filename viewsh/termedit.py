@@ -14,18 +14,33 @@ class TermLineEdit(object):
         self.__finished = False
         self.__termwrite = TerminalWriter(terminal)
 
-    def __init(self):
+    def reset_offset(self):
         self.screen_offset = self.terminal.get_cursor_position()[0] - 1
 
     def prompt(self):
+        self.start_line()
         self.terminal.key_event = self.q
-        self.__init()
         for event in self.q:
             self.handle_event(event)
             if self.__finished:
-                self.move_to(len(self.buff))
-                self.terminal.write('\r\n')
+                self.finish_line()
                 return self.finished()
+
+    def finish_line(self):
+        self.move_to(len(self.buff))
+        self.terminal.write('\r\n')
+
+    def start_line(self):
+        self.reset_offset()
+        self.__restore_after_line_cleared()
+
+    def __restore_after_line_cleared(self):
+        old_buff = self.buff
+        old_pos = self.pos
+        self.pos = 0
+        self.buff = ''
+        self.add(old_buff)
+        self.move_to(old_pos)
 
     def finished(self):
         return self.buff

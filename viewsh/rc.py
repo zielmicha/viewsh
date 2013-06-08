@@ -85,7 +85,6 @@ def main(fd, world, buffer):
     prompt = prompt.Prompt(state, terminal)
 
     while True:
-        prompt.show()
-        line_edit = edit.LineEdit(state, terminal)
+        line_edit = edit.LineEdit(prompt, state, terminal)
         line = line_edit.prompt()
         state[Executor].execute(terminal, line)
