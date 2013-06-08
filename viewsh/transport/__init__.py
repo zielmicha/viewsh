@@ -28,12 +28,10 @@ class CommandBasedTransport(Transport):
 
     def file_completions(self, path, cwd='/', dirs_only=False):
         path = as_utf8(path)
-        if dirs_only:
-            cmd = '''for i in %s*; do
-            if [ -d "$i" ]; then printf "%%s\\0" "$i"; fi
-            done''' % shell_quote(path)
-        else:
-            cmd = 'for i in %s*; do printf "%%s\\0" "$i"; done' % shell_quote(path)
+        test = '-d' if dirs_only else '-e'
+        cmd = '''for i in %s*; do
+        if [ %s "$i" ]; then printf "%%s\\0" "$i"; fi
+        done''' % (shell_quote(path), test)
         output = self.execute_get_output(
             ['sh', '-c', cmd],
             cwd=cwd)
