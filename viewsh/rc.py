@@ -61,7 +61,7 @@ def on_history_modified(history):
     except (IOError, OSError) as err:
         log('writing history failed %r' % err)
 
-def main(fd, world, buffer):
+def main(fd, world, buffer, setup_func=setup):
     # Assemble everything.
     from viewsh import terminal
     from viewsh import rc
@@ -79,7 +79,7 @@ def main(fd, world, buffer):
     state[interface.Interface] = world[interface.Interface]
     state[interface.Buffer] = buffer
 
-    setup(state)
+    setup_func(state)
 
     state[SwitchTransport].switch(local.LocalTransport())
     prompt = prompt.Prompt(state, terminal)
