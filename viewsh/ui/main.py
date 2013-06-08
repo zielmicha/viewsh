@@ -1,11 +1,12 @@
 from viewsh.ui import toolkit
 from viewsh.ui import interface
-from viewsh import main as shell_main
-from viewsh import task
 from viewsh.ui.toolkit import Terminal
 from viewsh.ui import interface
-from viewsh.comm import World
 from viewsh.ui.interface import Interface
+
+from viewsh.comm import World
+from viewsh import task
+from viewsh import rc
 
 # workaround to properly set signal handlers
 from viewsh.transport import local
@@ -26,8 +27,8 @@ def create_shell(world):
     master, slave = pty.openpty()
 
     term.set_pty(master)
-    task.async(lambda: shell_main.main(fd=slave,
-                                       buffer=buffer, world=world))
+    task.async(lambda: rc.main(fd=slave,
+                               buffer=buffer, world=world))
     return buffer
 
 if __name__ == '__main__':
