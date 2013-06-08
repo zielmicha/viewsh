@@ -13,6 +13,7 @@ class Prompt(object):
         self.state = state
 
     def show(self):
+        log('rendering prompt', level=1)
         self.make_whole_line()
         ps1 = self.state[PS1]
         environ = self.state[EnvCache].environ

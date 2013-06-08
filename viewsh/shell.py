@@ -1,3 +1,4 @@
+from viewsh.tools import log
 from viewsh import comm
 from viewsh.transport import Transport
 from viewsh import terminal
@@ -51,6 +52,7 @@ class SwitchTransport(object):
         return not self.stack
 
     def switch(self, new):
+        log('switching to new transport %s' % new, level=1)
         if Transport in self.state:
             values = { k:self.state[k] for k in self.save_fields }
             self.stack.append(values)

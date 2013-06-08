@@ -5,7 +5,7 @@ import os
 def log(*args, **kwargs):
     _log_real(*map(str, args), **kwargs)
 
-_debug_level = int(os.environ.get('DEBUG', 1))
+_debug_level = int(os.environ.get('DEBUG', 0))
 
 def _log_real(*args, **kwargs):
     level = kwargs.get('level', 0)

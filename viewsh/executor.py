@@ -28,7 +28,7 @@ class Executor(object):
     def execute(self, term, command):
         proxy_term = terminal.ProxyTerminal(term)
         proxy_term.key_event = None
-        q = task.Queue()
+        q = task.Queue('executor proxy')
         term.key_event = q
 
         execution = Execution(self, self.state, proxy_term)

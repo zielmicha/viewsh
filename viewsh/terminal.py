@@ -89,7 +89,7 @@ class Terminal(task.Task, BaseTerminal):
             self._post(KeyEvent(char=data[0]))
 
     def _post(self, ev):
-        log('KeyEvent', ev, level=2)
+        log('KeyEvent', ev, '->', self.key_event, level=2)
         self.key_event.post(ev)
 
     def _handle_code(self, code, data, mode_ind):
