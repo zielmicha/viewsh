@@ -116,18 +116,34 @@ class TermLineEdit(object):
 
     def add(self, data):
         ' Add data to buffer at current pos, and move cursor at the end of it.'
+        self.__termwrite.start_buffering()
         end = self.buff[self.pos:]
         self.buff = self.buff[:self.pos] + data + self.buff[self.pos:]
         self.pos += len(data)
         self.__termwrite.add(data + end)
         for i in xrange(len(end)):
             self.__termwrite.move_back()
+        self.__termwrite.end_buffering()
 
 class TerminalWriter(object):
     def __init__(self, terminal):
         self.terminal = terminal
         self.size = None
         self.cursor_position = None
+        self.buffer = None
+
+    def terminal_write(self, data):
+        if self.buffer is not None:
+            self.buffer.append(data)
+        else:
+            self.terminal.write(data)
+
+    def start_buffering(self):
+        self.buffer = []
+
+    def end_buffering(self):
+        self.terminal.write(''.join(self.buffer))
+        self.buffer = None
 
     def get_size(self):
         if not self.size:
@@ -142,29 +158,31 @@ class TerminalWriter(object):
     def backspace(self):
         self.move_back()
         pos = self.get_cursor_position()
-        self.terminal.write(' ')
+        self.terminal_write(' ')
         self.set_cursor_pos(pos)
 
     def move_back(self):
         x, y = self.get_cursor_position()
         w, h = self.get_size()
         if x == 1:
-            self.terminal.write('\x1b[A') # one line up
-            self.terminal.write('\x1b[%dG' % (w - 1)) # to the end of line
-            self.invalidate()
+            self.terminal_write('\x1b[A') # one line up
+            self.terminal_write('\x1b[%dG' % (w - 1)) # to the end of line
+            x, y = self.get_cursor_position()
+            self.cursor_position = [w - 1, y - 1]
         else:
-            self.terminal.write('\b')
+            self.terminal_write('\b')
             self.cursor_position[0] -= 1
 
     def move_forward(self):
         x, y = self.get_cursor_position()
         w, h = self.get_size()
         if x == w - 1:
-            self.terminal.write('\x1b[B') # one line up
-            self.terminal.write('\x1b[1G') # to the start of line
-            self.invalidate()
+            self.terminal_write('\x1b[B') # one line up
+            self.terminal_write('\x1b[1G') # to the start of line
+            x, y = self.get_cursor_position()
+            self.cursor_position = [1, y + 1]
         else:
-            self.terminal.write('\x1b[C')
+            self.terminal_write('\x1b[C')
             self.cursor_position[0] += 1
 
     def clear_forward(self, n):
@@ -182,12 +200,12 @@ class TerminalWriter(object):
             x, y = self.get_cursor_position()
             space_left = w - x
             written_data = data[:space_left]
-            self.terminal.write(written_data)
+            self.terminal_write(written_data)
             lines_written += 1
             data = data[space_left:]
             if data:
                 if y == h: # no more horizontal space
-                    self.terminal.write('\x1b[1S')
+                    self.terminal_write('\x1b[1S')
                     self.set_cursor_pos((1, h))
                 else:
                     self.set_cursor_pos((1, y + 1))
@@ -199,7 +217,10 @@ class TerminalWriter(object):
 
     def invalidate(self):
         self.cursor_position = None
+        if self.buffer is not None:
+            self.end_buffering()
+            self.start_buffering()
 
     def set_cursor_pos(self, (x, y)):
-        self.terminal.write('\x1b[%d;%dH' % (y, x))
+        self.terminal_write('\x1b[%d;%dH' % (y, x))
         self.cursor_position = [x, y]
