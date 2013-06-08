@@ -77,6 +77,7 @@ class Terminal(task.Task, BaseTerminal):
     def _consume(self, data):
         ''' Called with current buffer. If it doesn't constitute
         single keystroke raises _NotReady. '''
+        log("Terminal._consume", repr(data), level=4)
         if data[0] == '\x0b':
             self._post(KeyEvent('kill', char='\x0b'))
         elif data[0] == '\x1b' and data[1:2] in '[O':
@@ -98,9 +99,8 @@ class Terminal(task.Task, BaseTerminal):
                 'C': const.right,
                 'D': const.left,
                 'F': const.end,
-                'H': const.home,}.get(code)
-        if kind:
-            self._post(KeyEvent(kind, char='\x1b' + mode_ind + data + code))
+                'H': const.home,}.get(code, const.unknown_escape)
+        self._post(KeyEvent(kind, char='\x1b' + mode_ind + data + code))
         if code == 'R':
             self.get_cursor_position_event.post(data)
 
@@ -157,7 +157,7 @@ class KeyConst:
 
 const = KeyConst
 
-for i in ['up', 'down', 'right', 'left', 'char', 'home', 'end', 'kill']:
+for i in ['up', 'down', 'right', 'left', 'char', 'home', 'end', 'kill', 'unknown_escape']:
     setattr(const, i, i)
 
 class Color:
