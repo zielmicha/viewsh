@@ -1,9 +1,10 @@
 from viewsh.ui import toolkit
 
-class GlobalInterface(object):
+class Interface(object):
     def __init__(self):
         self.widget = toolkit.MultiWindow()
         self.last_windowid = 0
+        self.buffers = []
 
     def create_default_layout(self, term):
         self.set_layout(0)
@@ -22,36 +23,33 @@ class GlobalInterface(object):
             self.set_layout(('hsplit',
                              self.layout, self._make_windowid()))
 
-    def set_window(self, window_id, widget):
-        self.widget.set_window(window_id, widget)
+    def set_window(self, window_id, buffer):
+        assert isinstance(buffer, Buffer), buffer
+        assert buffer in self.buffers
+        buffer.window_id = window_id
+        self.widget.set_window(window_id, buffer.widget)
 
-    def create_child(self):
-        return Interface(global_iface=self)
+    def create_buffer(self, widget=None):
+        buff = Buffer(iface=self)
+        self.buffers.append(buff)
+        buff.widget = widget
+        return buff
 
-class Interface(object):
-    '''
-    Wrapper around GlobalInterface with
-    window-specific calls added.
-    '''
-    def __init__(self, window_id=0, global_iface=None):
-        if not global_iface:
-            global_iface = GlobalInterface()
-        self.global_iface = global_iface
+class Buffer(object):
+    def __init__(self, iface, window_id=0):
+        self.iface = iface
         self.window_id = window_id
-
-    def __getattr__(self, name):
-        return getattr(self.global_iface, name)
 
     def set_nextto(self, widget):
         '''
         Chooses suitable window and replaces it with widget.
         Returns choosen window id.
         '''
-        self.make_sure_there_is_a_split()
-        which = self.layout[1]
+        self.iface.make_sure_there_is_a_split()
+        which = self.iface.layout[1]
         if which == self.window_id:
-            which = self.layout[2]
-        self.set_window(which, widget)
+            which = self.iface.layout[2]
+        self.iface.set_window(which, widget)
         return which
 
 class InterfaceWrapper(object):

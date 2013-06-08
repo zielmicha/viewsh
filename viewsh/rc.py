@@ -61,7 +61,7 @@ def on_history_modified(history):
     except (IOError, OSError) as err:
         log('writing history failed %r' % err)
 
-def main(tty, world, interface):
+def main(tty, world, buffer):
     # Assemble everything.
     from viewsh import terminal
     from viewsh import rc
@@ -70,12 +70,14 @@ def main(tty, world, interface):
     from viewsh import comm
     from viewsh import edit
     from viewsh import prompt
+    from viewsh.ui import interface
 
     terminal = terminal.Terminal(tty)
     terminal.start()
     state = shell.ShellState()
     state[comm.World] = world
-    state[comm.Interface] = interface
+    state[interface.Interface] = world[interface.Interface]
+    state[interface.Buffer] = buffer
 
     setup(state)
 

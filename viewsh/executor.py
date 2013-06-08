@@ -5,7 +5,6 @@ from viewsh import terminal
 from viewsh.shell import CurrentDirectory, SwitchTransport, \
     EnvCache
 from viewsh.transport import Transport
-from viewsh.comm import Interface
 
 import shlex
 import traceback

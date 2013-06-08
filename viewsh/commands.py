@@ -2,7 +2,8 @@ from viewsh.transport import ssh
 from viewsh.transport import Transport
 from viewsh.shell import SwitchTransport, CurrentDirectory
 from viewsh.executor import Executor
-from viewsh.comm import Interface
+from viewsh.ui.interface import Interface, Buffer
+from viewsh.comm import World
 
 import posixpath
 
@@ -14,18 +15,18 @@ def vssh(state, terminal, userhost):
 def nextto(state, terminal):
     ''' Open a shell next to the current. '''
     from viewsh.ui import main
-    iface = state[Interface].create_child()
-    term = main.create_shell(iface)
+    buffer = main.create_shell(world=state[World])
 
-    iface.window_id = state[Interface].set_nextto(term)
+    state[Buffer].set_nextto(buffer)
 
 def show(state, terminal, path):
     from viewsh.ui import toolkit
     abspath = posixpath.join(state[CurrentDirectory], path)
     data = state[Transport].get_file_content(abspath)
     widget = toolkit.Label(data)
+    buffer = state[Interface].create_buffer(widget)
 
-    state[Interface].set_nextto(widget)
+    state[Buffer].set_nextto(buffer)
 
 def register(state):
     state[Executor].commands['vssh'] = vssh
