@@ -32,6 +32,7 @@ class TermLineEdit(object):
 
     def start_line(self):
         self.reset_offset()
+        self.__termwrite.invalidate()
         self.__restore_after_line_cleared()
 
     def __restore_after_line_cleared(self):
@@ -176,10 +177,13 @@ class TerminalWriter(object):
     def add(self, data):
         ' Add data at current position, assuming it is end. '
         w, h = self.terminal.get_size()
+        lines_written = 0
         while data:
             x, y = self.get_cursor_position()
             space_left = w - x
-            self.terminal.write(data[:space_left])
+            written_data = data[:space_left]
+            self.terminal.write(written_data)
+            lines_written += 1
             data = data[space_left:]
             if data:
                 if y == h: # no more horizontal space
@@ -187,7 +191,11 @@ class TerminalWriter(object):
                     self.set_cursor_pos((1, h))
                 else:
                     self.set_cursor_pos((1, y + 1))
-        self.invalidate()
+            else:
+                self.cursor_position = [x + len(written_data), y]
+        # not sure what terminal emulator will do - this may be necessary
+        # if self.get_cursor_position()[0] >= w - 2:
+        #     self.invalidate()
 
     def invalidate(self):
         self.cursor_position = None
