@@ -52,7 +52,7 @@ class Completor(object):
                           file_completions(cmd,
                                            cwd=self.state[CurrentDirectory],
                                            filter_type=FilterType.EXECUTABLE)
-            return completions
+            return [ i + ' ' for i in completions ]
         else:
             return []
 
