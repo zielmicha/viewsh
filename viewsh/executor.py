@@ -5,6 +5,7 @@ from viewsh import terminal
 from viewsh.shell import CurrentDirectory, SwitchTransport, \
     EnvCache
 from viewsh.transport import Transport
+from viewsh import parser
 
 import shlex
 import traceback
@@ -50,6 +51,10 @@ class Executor(object):
 
         proxy_term.enabled = False
 
+    def chdir(self, path):
+        new_dir = posixpath.join(self.state[CurrentDirectory], path)
+        self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir, need_dir=True)
+
 class Execution(object):
     def __init__(self, executor, state, terminal):
         self.state = state
@@ -57,18 +62,23 @@ class Execution(object):
         self.executor = executor
 
     def execute(self, command):
-        args = shlex.split(command)
-        if not args:
+        ast = parser.parse(command)
+        if not ast:
             return
-        resolved_alias = self.executor.resolve_alias(args[0])
-        args[:1] = shlex.split(resolved_alias)
-        func = self.executor.commands.get(args[0])
-        if not func:
-            func = getattr(self, 'command_' + args[0], None)
+        if isinstance(ast, parser.Command) and \
+           all( isinstance(child, parser.Identifier) for child in ast.children ):
+            self.execute_simple_command(ast.children)
         else:
-            func = partial(func, self.state, self.terminal)
+            self.call_command(self.execute_remote_command, ['sh', '-c', command])
+
+    def execute_simple_command(self, args):
+        resolved_alias = self.executor.resolve_alias(args[0].text)
+        args[:1] = parser.parse(resolved_alias).children
+        assert all( isinstance(child, parser.Identifier) for child in args )
+        args = [ child.text for child in args ]
+        func = self.executor.commands.get(args[0])
         if func:
-            self.call_command(func, *args[1:])
+            self.call_command(func, self.state, self.terminal, *args[1:])
         else:
             self.call_command(self.execute_remote_command, args)
 
@@ -99,18 +109,3 @@ class Execution(object):
             raise
         except:
             self.terminal.write_normal(traceback.format_exc())
-
-    def chdir(self, path):
-        new_dir = posixpath.join(self.state[CurrentDirectory], path)
-        self.state[CurrentDirectory] = self.state[Transport].real_path(new_dir, need_dir=True)
-
-    def command_exit(self):
-        if not self.state[SwitchTransport].empty():
-            self.state[SwitchTransport].pop()
-        else:
-            raise SystemExit()
-
-    def command_cd(self, dir=None):
-        if not dir:
-            dir = self.state[EnvCache].home
-        self.chdir(dir)

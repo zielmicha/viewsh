@@ -1,6 +1,6 @@
 from viewsh.transport import ssh
 from viewsh.transport import Transport
-from viewsh.shell import SwitchTransport, CurrentDirectory
+from viewsh.shell import SwitchTransport, CurrentDirectory, EnvCache
 from viewsh.executor import Executor
 from viewsh.ui.interface import Interface, Buffer
 from viewsh.comm import World
@@ -28,7 +28,20 @@ def show(state, terminal, path):
 
     state[Buffer].set_nextto(buffer)
 
+def cd(state, terminal, dir=None):
+    if not dir:
+        dir = state[EnvCache].home
+    state[Executor].chdir(dir)
+
+def exit(state, terminal):
+    if not state[SwitchTransport].empty():
+        state[SwitchTransport].pop()
+    else:
+        raise SystemExit()
+
 def register(state):
     state[Executor].commands['vssh'] = vssh
     state[Executor].commands['nextto'] = nextto
     state[Executor].commands['show'] = show
+    state[Executor].commands['cd'] = cd
+    state[Executor].commands['exit'] = exit

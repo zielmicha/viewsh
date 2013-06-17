@@ -5,7 +5,8 @@ class Node(object):
     pass
 
 class NodeWithChildren(Node):
-    pass
+    def __bool__(self):
+        return bool(self.children)
 
 class Backtick(NodeWithChildren):
     def __init__(self, child):
@@ -163,7 +164,10 @@ def parse_fragment(text, strict):
 
     end_command()
 
-    return Pipeline(pipeline), text
+    if len(pipeline) == 1:
+        return pipeline[0], text
+    else:
+        return Pipeline(pipeline), text
 
 if __name__ == '__main__':
     print parse('a b')
@@ -175,6 +179,7 @@ if __name__ == '__main__':
     print parse('a | b # c')
     print parse('a | b# c')
     print parse('a >b < c 3> d')
+    print parse('')
 
     import os
     parse(os.urandom(20000))
