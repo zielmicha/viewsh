@@ -5,6 +5,8 @@ from viewsh import task
 from viewsh.tools import log
 from viewsh.terminal import KeyEvent
 
+from viewsh.letterutils import next_word, prev_word
+
 class TermLineEdit(object):
     def __init__(self, terminal):
         self.terminal = terminal
@@ -65,11 +67,15 @@ class TermLineEdit(object):
             self.move_to(0)
         elif event.type == 'end':
             self.move_to(len(self.buff))
+        elif event.type == 'c_right':
+            self.move_to(next_word(self.buff, self.pos))
+        elif event.type == 'c_left':
+            self.move_to(prev_word(self.buff, self.pos))
         elif event.type == 'kill':
             self.kill()
         elif event.type == 'unknown_escape':
             pass
-        elif ord(event.char) >= 0x20:
+        elif len(event.char) == 1 and ord(event.char) >= 0x20:
             self.add(event.char)
         self.__normalize()
 

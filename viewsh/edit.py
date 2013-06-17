@@ -23,10 +23,6 @@ class LineEdit(termedit.TermLineEdit):
             self.history_pos %= len(history)
             self.clear()
             self.add(history[self.history_pos])
-        elif event.type == 'home':
-            self.move_to(0)
-        elif event.type == 'end':
-            self.move_to(len(self.buff))
         elif event.char == '\t':
             self.complete()
         elif event.char == '\x04':

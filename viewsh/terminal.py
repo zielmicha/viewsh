@@ -100,10 +100,17 @@ class Terminal(task.Task, BaseTerminal):
                 'C': const.right,
                 'D': const.left,
                 'F': const.end,
-                'H': const.home,}.get(code, const.unknown_escape)
+                'H': const.home,}.get(code)
+        if data == '1;5':
+            kind = {'A': const.c_up,
+                    'B': const.c_down,
+                    'C': const.c_right,
+                    'D': const.c_left,}.get(code)
         if code == '~':
             kind = {'1': const.home,
-            '4': const.end,}.get(data, const.unknown_escape)
+            '4': const.end,}.get(data)
+        if not kind:
+            kind = const.unknown_escape
         self._post(KeyEvent(kind, char='\x1b' + mode_ind + data + code))
         if code == 'R':
             self.get_cursor_position_event.post(data)
@@ -161,7 +168,10 @@ class KeyConst:
 
 const = KeyConst
 
-for i in ['up', 'down', 'right', 'left', 'char', 'home', 'end', 'kill', 'unknown_escape']:
+for i in ['up', 'down', 'right', 'left',
+          'c_up', 'c_down', 'c_right', 'c_left',
+          'char', 'home', 'end', 'kill',
+          'unknown_escape']:
     setattr(const, i, i)
 
 class Color:
