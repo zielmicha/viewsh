@@ -15,8 +15,6 @@ import stat
 import errno
 import socket
 
-signal.signal(signal.SIGCHLD, signal.SIG_IGN)
-
 class LocalTransport(transport.CommandBasedTransport):
     def __init__(self):
         super(LocalTransport, self).__init__()
@@ -40,6 +38,7 @@ class LocalTransport(transport.CommandBasedTransport):
 
             os._exit(0)
         else:
+            os.waitpid(pid, os.WNOHANG)
             fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NDELAY)
             fd2 = os.dup(fd)
             return stream.FileStream(os.fdopen(fd, 'r', 0), os.fdopen(fd2, 'w', 0),

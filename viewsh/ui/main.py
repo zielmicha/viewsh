@@ -9,9 +9,6 @@ from viewsh.comm import World
 from viewsh import task
 from viewsh import rc
 
-# workaround to properly set signal handlers
-from viewsh.transport import local
-
 def main():
     # todo: argparse
     world = World()
