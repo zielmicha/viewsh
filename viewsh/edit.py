@@ -37,7 +37,8 @@ class LineEdit(termedit.TermLineEdit):
         super(LineEdit, self).start_line()
 
     def finished(self):
-        self.save_history(self.buff)
+        if self.buff.strip():
+            self.save_history(self.buff)
         return super(LineEdit, self).finished()
 
     def save_history(self, line):
