@@ -33,6 +33,12 @@ def as_utf8(arg):
     else:
         return arg.encode('utf8')
 
+def trim_long_string(text, limit=20):
+    if len(text) > limit:
+        return text[:limit-3] + '...'
+    else:
+        return text
+
 class Enum(set):
     def __getattr__(self, name):
         if name in self:
