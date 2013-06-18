@@ -19,11 +19,11 @@ class SSHTransport(transport.CommandBasedTransport):
         if pty:
             chan.get_pty('xterm', size[0], size[1])
         self._do_execute_command(chan, args, cwd)
-        bufsize = 0 # FIXME: slow reads, async?
-        stdin = chan.makefile('rb', bufsize)
+        bufsize = 0
+        stdin = NonBufferedSocketInput(chan)
         stdout = chan.makefile('wb', bufsize)
         # TODO: stderr?
-        return stream.FileStream(stdin, stdout)
+        return stream.FileStream(stdin, stdout, buffer_size=1024)
 
     def execute_get_output(self, args, cwd='/'):
         chan = self.transport.open_session()
@@ -64,3 +64,10 @@ class SSHTransport(transport.CommandBasedTransport):
                 return
             except paramiko.SSHException:
                 pass
+
+class NonBufferedSocketInput(object):
+    def __init__(self, sock):
+        self.sock = sock
+
+    def read(self, size):
+        return self.sock.recv(size)
