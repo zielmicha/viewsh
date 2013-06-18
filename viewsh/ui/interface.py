@@ -13,7 +13,7 @@ class Interface(object):
 
     def set_layout(self, layout):
         self.layout = layout
-        self.widget.set_layout(('vsplit', layout, -1)) # minibuffer
+        self.widget.set_layout(layout)
 
     def _make_windowid(self):
         self.last_windowid += 1

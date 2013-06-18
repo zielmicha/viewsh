@@ -14,7 +14,7 @@ def main():
     world = World()
     buffer = create_shell(world=world)
     world[Interface].create_default_layout(buffer)
-    minibuffer.create(world)
+    #minibuffer.create(world)
 
     toolkit.Main(world[Interface].widget).run()
 
